@@ -37,6 +37,8 @@ data PPG = Game
   , bat2 :: Float                      -- ^ Right player bat height.
   , bat1state :: Int                 -- 0: stop, 1: move up, 2: move down
   , bat2state :: Int                 -- 0: stop, 1: move up, 2: move down
+  , sceneState :: Int                -- 0: Instruction, 1: Play, 2: End
+--  , ballspeed :: Float
   } deriving Show
 
 -- | The Initial State of the PPG
@@ -48,6 +50,8 @@ initialState = Game
   , bat2 = -80
   , bat1state = 0
   , bat2state = 0
+  , sceneState = 0
+--  , ballspeed = 10
   }
 
 -- | For Reading the function much easier 
@@ -83,11 +87,15 @@ main = play window background_Color 60 initialState render handleKeys update
 
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
-render game =
-  pictures [ball, walls,
-            mkBat rose bat1x (bat1 game),
-            mkBat orange bat2x (bat2 game)]
+render game = case (sceneState game) of
+                0 -> pictures [instruction]
+                1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game), mkBat orange bat2x (bat2 game)]
+                2 -> pictures [end] 
   where
+    -- Instruction Scene
+    instruction = scale 0.2 0.2 (text "Instruction")
+    -- End Scene
+    end = scale 0.2 0.2 (text "Happy Ending")
     --  The pong ball.
     ball = uncurry translate (ballPos game) ( color ball_Color  (circleSolid 10))
 
@@ -104,13 +112,15 @@ render game =
 
 -- | Update the ball position using its current velocity.
 movement :: Float -> PPG -> PPG
-
-movement seconds game = game { ballPos = (x', y'), bat1 = y'', bat2 = y'''}
+movement seconds game = if (sceneState game) == 1 
+                        then
+                        game { ballPos = (x', y'), bat1 = y'', bat2 = y'''}
+                        else game
   where
-    -- Old Positions and velocities.
+    -- Old Positions and velocities
     (x, y) = ballPos game
     (vx, vy) = ballVel game
-
+     
     -- New Positions.
     x' = x + vx * seconds
     y' = y + vy * seconds
@@ -123,26 +133,26 @@ movement seconds game = game { ballPos = (x', y'), bat1 = y'', bat2 = y'''}
     y''' = case (bat2state game) of
             0 -> (bat2 game)
             1 -> (bat2 game) + 10
-            2 -> (bat2 game) - 10
+            2 -> (bat2 game) - 10 
 
 
 -- | Detect a collision with a bat. Upon collisions,
 -- change the velocity of the ball to bounce it off the bat.
 batBounce :: PPG -> PPG
-batBounce game = game { ballVel = (vx', vy)}
+batBounce game = game { ballVel = (vx', vy')}
   where
     -- Radius. Use the same thing as in `render`.
     radius = 10
     -- The old velocities.
     (vx, vy) = ballVel game
 
-    vx' = if batCollision game radius
+    (vx', vy') = if batCollision game radius
           then
             -- Update the velocity.
-            -vx
+            (-vx, vy)
           else
             -- Do nothing. Return the old velocity.
-            vx
+            (vx, vy)
 
 -- | Given position and radius of the ball, return whether a collision occurred.
 batCollision :: PPG -> Radius -> Bool
@@ -200,10 +210,21 @@ wallCollision (_, y) radius = topCollision || bottomCollision
     topCollision    = y - radius <= - boundary_height / 2 
     bottomCollision = y + radius >=  boundary_height / 2
 
+-- | Judge Win/Lose
+outofBound :: PPG -> PPG
+outofBound game = if leftout (ballPos game) || rightout (ballPos game) 
+                  then game {sceneState = 2}
+                  else game
+  where
+    radius = 10
+    leftout (ball_x, _) = ball_x - radius <= -boundary_width /2
+    rightout (ball_x, _) = ball_x + radius >= boundary_width /2
+
+
+
 -- | Update the game by moving the ball and bouncing off walls.
 update :: Float -> PPG -> PPG
-update seconds = batBounce . wallBounce . movement seconds
-
+update seconds = outofBound . batBounce . wallBounce . movement seconds
 
 -- | Respond to key events.
 handleKeys :: Event -> PPG -> PPG
@@ -225,6 +246,13 @@ handleKeys (EventKey (Char 's') Up _ _) game = game {bat1state = 0}
 handleKeys (EventKey (Char 'w') Up _ _) game = game {bat1state = 0}
 handleKeys (EventKey (SpecialKey KeyPageUp) Up _ _) game = game {bat2state = 0}
 handleKeys (EventKey (SpecialKey KeyPageDown) Up _ _) game = game {bat2state = 0}
+
+-- Out of the End Scene
+handleKeys (EventKey (Char 'q') Down _ _) game = case (sceneState game) of
+                                                 0 -> game {sceneState = 1}
+                                                 1 -> game {sceneState = 2}
+                                                 2 -> initialState
+
 -- Do nothing for all other events.
 handleKeys _ game = game
 
