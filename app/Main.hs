@@ -136,7 +136,7 @@ batBounce game = game { ballVel = (vx', vy)}
     -- The old velocities.
     (vx, vy) = ballVel game
 
-    vx' = if batCollision (ballPos game) radius
+    vx' = if batCollision game radius
           then
             -- Update the velocity.
             -vx
@@ -145,12 +145,13 @@ batBounce game = game { ballVel = (vx', vy)}
             vx
 
 -- | Given position and radius of the ball, return whether a collision occurred.
-batCollision :: Position -> Radius -> Bool 
-batCollision (x, _) radius = leftCollision || rightCollision
+batCollision :: PPG -> Radius -> Bool
+batCollision game radius = (leftXRange (ballPos game) (bat2 game) || rightXRange (ballPos game) (bat1 game))
   where
-    leftCollision  = x - radius <=  -boundary_width / 2 
-    rightCollision = x + radius >=  boundary_width / 2 
-
+    leftXRange (x,ball_y) bat_y = (x - radius == bat2x + bat_width / 2)
+                               && ((ball_y <= bat_height / 2 + bat_y) && (ball_y >= -bat_height / 2 + bat_y))
+    rightXRange (x,ball_y) bat_y = (x + radius ==  bat1x - bat_width / 2)
+                               && ((ball_y <= bat_height / 2 + bat_y) && (ball_y >= -bat_height / 2 + bat_y))
 
 -- | Detect a collision with one of the side walls. Upon collisions,
 -- update the velocity of the ball to bounce it off the wall.
