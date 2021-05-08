@@ -90,12 +90,16 @@ render :: PPG  -> Picture
 render game = case (sceneState game) of
                 0 -> pictures [instruction]
                 1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game), mkBat orange bat2x (bat2 game)]
-                2 -> pictures [end] 
+                2 -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
     instruction = scale 0.2 0.2 (text "Instruction")
     -- End Scene
-    end = scale 0.2 0.2 (text "Happy Ending")
+    endTitle    = translate (-150) 100   (scale 0.4 0.4 (text ("Player"++ show(1) ++" Win!!!")))
+    endSubtitle = translate (-110) 50    (scale 0.2 0.2 (text "[Game Developers]"))
+    endEdit1  = translate (-110) 20    (scale 0.1 0.1 (text "Yinchao Zhu zhuyin@oregonstate.edu"))
+    endEdit2  = translate (-110) 0     (scale 0.1 0.1 (text "Haoyuan Qiu iuha@oregonstate.edu"))
+    endEdit3  = translate (-110) (-20) (scale 0.1 0.1 (text "Shukan Nieh niehsh@oregonstat.edu"))
     --  The pong ball.
     ball = uncurry translate (ballPos game) ( color ball_Color  (circleSolid 10))
 
