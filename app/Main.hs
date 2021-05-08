@@ -89,7 +89,7 @@ main = play window background_Color 60 initialState render handleKeys update
 render :: PPG  -> Picture
 render game = case (sceneState game) of
                 0 -> pictures [instruction]
-                1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game), mkBat orange bat2x (bat2 game)]
+                1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game), mkBat orange bat2x (bat2 game),player1_score, colon, player2_score]
                 2 -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
@@ -100,6 +100,10 @@ render game = case (sceneState game) of
     endEdit1  = translate (-110) 20    (scale 0.1 0.1 (text "Yinchao Zhu zhuyin@oregonstate.edu"))
     endEdit2  = translate (-110) 0     (scale 0.1 0.1 (text "Haoyuan Qiu iuha@oregonstate.edu"))
     endEdit3  = translate (-110) (-20) (scale 0.1 0.1 (text "Shukan Nieh niehsh@oregonstat.edu"))
+    -- the current score
+    player1_score = translate 60 165 (scale 0.2 0.2 (text (show(5))))
+    colon = translate 0 165 (scale 0.2 0.2 (text (":")))
+    player2_score = translate (-60) 165 (scale 0.2 0.2 (text (show(7))))
     --  The pong ball.
     ball = uncurry translate (ballPos game) ( color ball_Color  (circleSolid 10))
 
