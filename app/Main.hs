@@ -88,12 +88,15 @@ main = play window background_Color 60 initialState render handleKeys update
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
 render game = case (sceneState game) of
-                0 -> pictures [instruction]
+                0 -> pictures [instruction1, instruction2, next, welcome]
                 1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game), mkBat orange bat2x (bat2 game),player1_score, colon, player2_score]
                 2 -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
-    instruction = scale 0.2 0.2 (text "Instruction")
+    welcome = translate (-185) 90 (scale 0.2 0.2 (text "Welcome to PingPong Game"))
+    instruction1 = translate (-180) (-60) (scale 0.12 0.12 (text "Player1 use PgUp/PgDn to control the left bat"))
+    instruction2 = translate (-165) (-80) (scale 0.12 0.12 (text "Player2 use W/S to control the right bat"))
+    next  = translate (-110) (-170) (scale 0.2 0.2 (text "Press Q to play"))
     -- End Scene
     endTitle    = translate (-150) 100   (scale 0.4 0.4 (text ("Player"++ show(1) ++" Win!!!")))
     endSubtitle = translate (-110) 50    (scale 0.2 0.2 (text "[Game Developers]"))
