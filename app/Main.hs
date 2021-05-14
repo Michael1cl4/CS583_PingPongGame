@@ -14,9 +14,8 @@ boundary_height = 300
 boundary_offset = 100
 
 -- | The size of the bat
-bat_width, bat_height :: Float
+bat_width :: Float
 bat_width  = 20
-bat_height = 80
 
 -- | The bat position on X-axis
 bat1x, bat2x :: Float
@@ -44,6 +43,8 @@ data PPG = Game
   , ballspeed :: Float
   , p1score :: Int
   , p2score :: Int
+  , bat1_height :: Float
+  , bat2_height :: Float
   } deriving Show
 
 -- | The Initial State of the PPG
@@ -59,6 +60,8 @@ initialState = Game
   , ballspeed = 1.2
   , p1score = 0
   , p2score = 0
+  , bat1_height = 80
+  , bat2_height = 80
   }
 
 -- | For Reading the function much easier 
@@ -95,14 +98,18 @@ main = play window background_Color 120 initialState render handleKeys update
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
 render game = case (sceneState game) of
-                0 -> pictures [instruction1, instruction2, next, welcome]
-                1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game), mkBat orange bat2x (bat2 game),player1_score, colon, player2_score]
+                0 -> pictures [instruction1, instruction1_diff, bat1_shape (bat1_height game), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome]
+                1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game) (bat1_height game), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
                 2 -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
     welcome = translate (-185) 90 (scale 0.2 0.2 (text "Welcome to PingPong Game"))
-    instruction1 = translate (-180) (-60) (scale 0.12 0.12 (text "Player1 use PgUp/PgDn to control the left bat"))
-    instruction2 = translate (-165) (-80) (scale 0.12 0.12 (text "Player2 use W/S to control the right bat"))
+    instruction1 = translate (-190) (60) (scale 0.12 0.12 (text "Player1 use PgUp/PgDn to control the right bat"))
+    instruction1_diff = translate (-180) (30) (scale 0.12 0.12 (text "Player1 use '1' to tune the bat length"))
+    bat1_shape bat1_height = translate (0) (0) (color bat_Color (rectangleSolid bat1_height (10)))
+    instruction2 = translate (-180) (-30) (scale 0.12 0.12 (text "Player2 use W/S to control the left bat"))
+    instruction2_diff = translate (-180) (-60) (scale 0.12 0.12 (text "Player2 use '2' to tune the bat length"))
+    bat2_shape bat2_height = translate (0) (-90) (color bat_Color (rectangleSolid bat2_height (10)))
     next  = translate (-110) (-170) (scale 0.2 0.2 (text "Press Q to play"))
     -- End Scene
     endTitle    = if (p1score game == win_score)
@@ -128,8 +135,8 @@ render game = case (sceneState game) of
     walls = pictures [wall (boundary_height / 2), wall (boundary_height / 2 * (-1))]
 
     --  Make a bat of a given border and vertical offset.
-    mkBat :: Color -> Float -> Float -> Picture
-    mkBat col x y = pictures [translate x y (color bat_Color (rectangleSolid bat_width bat_height))]
+    mkBat :: Color -> Float -> Float -> Float -> Picture
+    mkBat col x y h = pictures [translate x y (color bat_Color (rectangleSolid bat_width h))]
 
 -- | Update the ball position using its current velocity.
 movement :: Float -> PPG -> PPG
@@ -182,12 +189,12 @@ batBounce game = game {ballVel = (vx', vy')}
 
 -- | Given position and radius of the ball, return whether a collision occurred.
 batCollision :: PPG -> Radius -> Bool
-batCollision game radius = (leftXRange (ballPos game) (bat2 game) || rightXRange (ballPos game) (bat1 game))
+batCollision game radius = (leftXRange (ballPos game) (bat2 game) (bat2_height game) || rightXRange (ballPos game) (bat1 game) (bat1_height game))
   where
-    leftXRange (x,ball_y) bat_y = ( floor(x - radius) == floor(bat2x + bat_width / 2))
-                               && ((ball_y <= bat_height / 2 + bat_y) && (ball_y >= -bat_height / 2 + bat_y))
-    rightXRange (x,ball_y) bat_y = (floor(x + radius) ==  floor(bat1x - bat_width / 2))
-                               && ((ball_y <= bat_height / 2 + bat_y) && (ball_y >= -bat_height / 2 + bat_y))
+    leftXRange (x,ball_y) bat_y bat_h = ( floor(x - radius) == floor(bat2x + bat_width / 2))
+                               && ((ball_y <= bat_h / 2 + bat_y) && (ball_y >= -bat_h / 2 + bat_y))
+    rightXRange (x,ball_y) bat_y bat_h = (floor(x + radius) ==  floor(bat1x - bat_width / 2))
+                               && ((ball_y <= bat_h / 2 + bat_y) && (ball_y >= -bat_h / 2 + bat_y))
 
 -- | Detect a collision with one of the side walls. Upon collisions,
 -- update the velocity of the ball to bounce it off the wall.
@@ -208,24 +215,24 @@ wallBounce game = game { ballVel = (vx, vy'), bat1 = y'' , bat2 = y''' }
             vy
 
     p1y = bat1 game
-    y'' = if p1y >=  (boundary_height - bat_height) / 2
+    y'' = if p1y >=  (boundary_height - (bat1_height game)) / 2
           then
-            (boundary_height - bat_height) / 2
+            (boundary_height - (bat1_height game)) / 2
           else
-            if p1y <=  -(boundary_height - bat_height) / 2
+            if p1y <=  -(boundary_height - (bat1_height game)) / 2
             then
-              -(boundary_height - bat_height) / 2
+              -(boundary_height - (bat1_height game)) / 2
             else
               p1y
 
     p2y = bat2 game
-    y''' = if p2y >=  (boundary_height - bat_height) / 2
+    y''' = if p2y >=  (boundary_height - (bat2_height game)) / 2
           then
-            (boundary_height - bat_height) / 2
+            (boundary_height - (bat2_height game)) / 2
           else
-            if p2y <=  -(boundary_height - bat_height) / 2
+            if p2y <=  -(boundary_height - (bat2_height game)) / 2
             then
-              -(boundary_height - bat_height) / 2
+              -(boundary_height - (bat2_height game)) / 2
             else
               p2y
 
@@ -275,6 +282,27 @@ handleKeys (EventKey (SpecialKey KeyPageUp) Down _ _) game = game {bat1state = 1
 -- For an KeyPageDown keypress, move down the bat2.
 handleKeys (EventKey (SpecialKey KeyPageDown) Down _ _) game = game {bat1state = 2}
 
+-- For an “1” keypress, move up the bat1.
+handleKeys (EventKey (Char '1') Down _ _) game = if ( (sceneState game) == 0) then
+                                                                                      case (bat1_height game) of
+                                                                                         40 -> game {bat1_height = 60}
+                                                                                         60 -> game {bat1_height = 80}
+                                                                                         80 -> game {bat1_height = 100}
+                                                                                         100 -> game {bat1_height = 120}
+                                                                                         120 -> game {bat1_height = 40}
+                                                                                   else
+                                                                                      game
+-- For an “2” keypress, move down the bat1.
+handleKeys (EventKey (Char '2') Down _ _) game = if ( (sceneState game) == 0) then
+                                                                                      case (bat2_height game) of
+                                                                                         40 -> game {bat2_height = 60}
+                                                                                         60 -> game {bat2_height = 80}
+                                                                                         80 -> game {bat2_height = 100}
+                                                                                         100 -> game {bat2_height = 120}
+                                                                                         120 -> game {bat2_height = 40}
+                                                                                   else
+                                                                                      game
+
 handleKeys (EventKey (Char 's') Up _ _) game = game {bat2state = 0}
 handleKeys (EventKey (Char 'w') Up _ _) game = game {bat2state = 0}
 handleKeys (EventKey (SpecialKey KeyPageUp) Up _ _) game = game {bat1state = 0}
@@ -283,8 +311,11 @@ handleKeys (EventKey (SpecialKey KeyPageDown) Up _ _) game = game {bat1state = 0
 -- Out of the End Scene
 handleKeys (EventKey (Char 'q') Down _ _) game = case (sceneState game) of
                                                  0 -> game {sceneState = 1}
-                                                 1 -> game {sceneState = 2}
+                                                 1 -> initialState
                                                  2 -> initialState
 
 -- Do nothing for all other events.
 handleKeys _ game = game
+
+
+
