@@ -41,7 +41,7 @@ data PPG = Game
   , bat1state :: Int                 -- 0: stop, 1: move up, 2: move down
   , bat2state :: Int                 -- 0: stop, 1: move up, 2: move down
   , sceneState :: Int                -- 0: Instruction, 1: Play, 2: End
---  , ballspeed :: Float
+  , ballspeed :: Float
   , p1score :: Int
   , p2score :: Int
   } deriving Show
@@ -56,7 +56,7 @@ initialState = Game
   , bat1state = 0
   , bat2state = 0
   , sceneState = 0
---  , ballspeed = 10
+  , ballspeed = 1.2
   , p1score = 0
   , p2score = 0
   }
@@ -89,7 +89,7 @@ Display	                        Display mode.
 -}
 
 main :: IO ()
-main = play window background_Color 60 initialState render handleKeys update
+main = play window background_Color 120 initialState render handleKeys update
 
 
 -- | Convert a game state into a picture.
@@ -149,27 +149,32 @@ movement seconds game = if (sceneState game) == 1
     -- New Position of bat
     y'' = case (bat1state game) of
             0 -> (bat1 game)
-            1 -> (bat1 game) + 10
-            2 -> (bat1 game) - 10
+            1 -> (bat1 game) + 5
+            2 -> (bat1 game) - 5
     y''' = case (bat2state game) of
             0 -> (bat2 game)
-            1 -> (bat2 game) + 10
-            2 -> (bat2 game) - 10 
+            1 -> (bat2 game) + 5
+            2 -> (bat2 game) - 5
 
 
 -- | Detect a collision with a bat. Upon collisions,
 -- change the velocity of the ball to bounce it off the bat.
 batBounce :: PPG -> PPG
-batBounce game = game { ballVel = (vx', vy')}
+batBounce game = game {ballVel = (vx', vy')}
   where
     -- Radius. Use the same thing as in `render`.
     radius = 10
     -- The old velocities.
     (vx, vy) = ballVel game
+ --   (x, y) = ballPos game
 
     (vx', vy') = if batCollision game radius
           then
             -- Update the velocity.
+            if (abs(vx) * (ballspeed game) < 150 && abs(vy) * (ballspeed game) < 200 )
+            then
+            (-vx * (ballspeed game), vy * (ballspeed game))
+            else
             (-vx, vy)
           else
             -- Do nothing. Return the old velocity.
@@ -179,9 +184,9 @@ batBounce game = game { ballVel = (vx', vy')}
 batCollision :: PPG -> Radius -> Bool
 batCollision game radius = (leftXRange (ballPos game) (bat2 game) || rightXRange (ballPos game) (bat1 game))
   where
-    leftXRange (x,ball_y) bat_y = (x - radius == bat2x + bat_width / 2)
+    leftXRange (x,ball_y) bat_y = ( floor(x - radius) == floor(bat2x + bat_width / 2))
                                && ((ball_y <= bat_height / 2 + bat_y) && (ball_y >= -bat_height / 2 + bat_y))
-    rightXRange (x,ball_y) bat_y = (x + radius ==  bat1x - bat_width / 2)
+    rightXRange (x,ball_y) bat_y = (floor(x + radius) ==  floor(bat1x - bat_width / 2))
                                && ((ball_y <= bat_height / 2 + bat_y) && (ball_y >= -bat_height / 2 + bat_y))
 
 -- | Detect a collision with one of the side walls. Upon collisions,
@@ -248,8 +253,7 @@ finishCheck game = if  (p2score game) == win_score || (p1score game) == win_scor
                                  then
                                    game {sceneState = 2}
                                  else
-			game
-                                   
+                                   game            
 
 -- | Update the game by moving the ball and bouncing off walls.
 update :: Float -> PPG -> PPG
