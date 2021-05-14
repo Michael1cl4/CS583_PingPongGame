@@ -28,6 +28,9 @@ wall_width, wall_height  :: Float
 wall_width = 270
 wall_height = 10
 
+win_score :: Int
+win_score = 5
+
 -- | Ping Pong Game State 
 data PPG = Game
   { ballPos :: (Float, Float)    -- ^ Pong ball (x, y) Position.
@@ -39,6 +42,8 @@ data PPG = Game
   , bat2state :: Int                 -- 0: stop, 1: move up, 2: move down
   , sceneState :: Int                -- 0: Instruction, 1: Play, 2: End
 --  , ballspeed :: Float
+  , p1score :: Int
+  , p2score :: Int
   } deriving Show
 
 -- | The Initial State of the PPG
@@ -52,6 +57,8 @@ initialState = Game
   , bat2state = 0
   , sceneState = 0
 --  , ballspeed = 10
+  , p1score = 0
+  , p2score = 0
   }
 
 -- | For Reading the function much easier 
@@ -98,15 +105,18 @@ render game = case (sceneState game) of
     instruction2 = translate (-165) (-80) (scale 0.12 0.12 (text "Player2 use W/S to control the right bat"))
     next  = translate (-110) (-170) (scale 0.2 0.2 (text "Press Q to play"))
     -- End Scene
-    endTitle    = translate (-150) 100   (scale 0.4 0.4 (text ("Player"++ show(1) ++" Win!!!")))
+    endTitle    = if (p1score game == win_score)
+                       then
+                              translate (-150) 100   (scale 0.4 0.4 (text ("Player"++ show(1) ++" Win!!!")))
+                       else translate (-150) 100   (scale 0.4 0.4 (text ("Player"++ show(2) ++" Win!!!")))
     endSubtitle = translate (-110) 50    (scale 0.2 0.2 (text "[Game Developers]"))
     endEdit1  = translate (-110) 20    (scale 0.1 0.1 (text "Yinchao Zhu zhuyin@oregonstate.edu"))
     endEdit2  = translate (-110) 0     (scale 0.1 0.1 (text "Haoyuan Qiu iuha@oregonstate.edu"))
     endEdit3  = translate (-110) (-20) (scale 0.1 0.1 (text "Shukan Nieh niehsh@oregonstat.edu"))
     -- the current score
-    player1_score = translate 60 165 (scale 0.2 0.2 (text (show(5))))
+    player1_score = translate 60 165 (scale 0.2 0.2 (text (show(p1score game))))
     colon = translate 0 165 (scale 0.2 0.2 (text (":")))
-    player2_score = translate (-60) 165 (scale 0.2 0.2 (text (show(7))))
+    player2_score = translate (-60) 165 (scale 0.2 0.2 (text (show(p2score game))))
     --  The pong ball.
     ball = uncurry translate (ballPos game) ( color ball_Color  (circleSolid 10))
 
@@ -223,19 +233,27 @@ wallCollision (_, y) radius = topCollision || bottomCollision
 
 -- | Judge Win/Lose
 outofBound :: PPG -> PPG
-outofBound game = if leftout (ballPos game) || rightout (ballPos game) 
-                  then game {sceneState = 2}
-                  else game
+outofBound game = if leftout (ballPos game)
+                  then game {p1score = (p1score game) + 1, ballPos = (0, 0), ballVel = (-30, -40) }
+                  else if rightout (ballPos game)
+      then game {p2score = (p2score game) + 1, ballPos = (0, 0), ballVel = (-30, -40)}
+      else game
   where
     radius = 10
     leftout (ball_x, _) = ball_x - radius <= -boundary_width /2
     rightout (ball_x, _) = ball_x + radius >= boundary_width /2
 
-
+finishCheck :: PPG -> PPG
+finishCheck game = if  (p2score game) == win_score || (p1score game) == win_score
+                                 then
+                                   game {sceneState = 2}
+                                 else
+			game
+                                   
 
 -- | Update the game by moving the ball and bouncing off walls.
 update :: Float -> PPG -> PPG
-update seconds = outofBound . batBounce . wallBounce . movement seconds
+update seconds = finishCheck . outofBound . batBounce . wallBounce . movement seconds
 
 -- | Respond to key events.
 handleKeys :: Event -> PPG -> PPG
@@ -245,18 +263,18 @@ handleKeys (EventKey (SpecialKey KeySpace) _ _ _) game =
   game { ballPos = (0, 0) }
 
 -- For an KeyUp keypress, move up the bat1.
-handleKeys (EventKey (Char 'w') Down _ _) game = game {bat1state = 1}
+handleKeys (EventKey (Char 'w') Down _ _) game = game {bat2state = 1}
 -- For an KeyDown keypress, move down the bat1.
-handleKeys (EventKey (Char 's') Down _ _) game = game {bat1state = 2}
+handleKeys (EventKey (Char 's') Down _ _) game = game {bat2state = 2}
 -- For an KeyPageUp keypress, move up the bat2.
-handleKeys (EventKey (SpecialKey KeyPageUp) Down _ _) game = game {bat2state = 1}
+handleKeys (EventKey (SpecialKey KeyPageUp) Down _ _) game = game {bat1state = 1}
 -- For an KeyPageDown keypress, move down the bat2.
-handleKeys (EventKey (SpecialKey KeyPageDown) Down _ _) game = game {bat2state = 2}
+handleKeys (EventKey (SpecialKey KeyPageDown) Down _ _) game = game {bat1state = 2}
 
-handleKeys (EventKey (Char 's') Up _ _) game = game {bat1state = 0}
-handleKeys (EventKey (Char 'w') Up _ _) game = game {bat1state = 0}
-handleKeys (EventKey (SpecialKey KeyPageUp) Up _ _) game = game {bat2state = 0}
-handleKeys (EventKey (SpecialKey KeyPageDown) Up _ _) game = game {bat2state = 0}
+handleKeys (EventKey (Char 's') Up _ _) game = game {bat2state = 0}
+handleKeys (EventKey (Char 'w') Up _ _) game = game {bat2state = 0}
+handleKeys (EventKey (SpecialKey KeyPageUp) Up _ _) game = game {bat1state = 0}
+handleKeys (EventKey (SpecialKey KeyPageDown) Up _ _) game = game {bat1state = 0}
 
 -- Out of the End Scene
 handleKeys (EventKey (Char 'q') Down _ _) game = case (sceneState game) of
@@ -266,4 +284,3 @@ handleKeys (EventKey (Char 'q') Down _ _) game = case (sceneState game) of
 
 -- Do nothing for all other events.
 handleKeys _ game = game
-
