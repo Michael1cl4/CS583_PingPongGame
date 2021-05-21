@@ -45,6 +45,7 @@ data PPG = Game
   , p2score :: Int
   , bat1_height :: Float
   , bat2_height :: Float
+  , ai_mod :: Int
   } deriving Show
 
 -- | The Initial State of the PPG
@@ -62,6 +63,7 @@ initialState = Game
   , p2score = 0
   , bat1_height = 80
   , bat2_height = 80
+  , ai_mod = 0
   }
 
 -- | For Reading the function much easier 
@@ -98,19 +100,24 @@ main = play window background_Color 120 initialState render handleKeys update
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
 render game = case (sceneState game) of
-                0 -> pictures [instruction1, instruction1_diff, bat1_shape (bat1_height game), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome]
+                0 -> if  (ai_mod game == 1) then
+                          pictures [ai , instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
+                       else
+                          pictures [instruction1, instruction1_diff, bat1_shape (bat1_height game), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
                 1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game) (bat1_height game), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
                 2 -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
-    welcome = translate (-185) 90 (scale 0.2 0.2 (text "Welcome to PingPong Game"))
+    welcome = translate (-185) 110 (scale 0.2 0.2 (text "Welcome to PingPong Game"))
     instruction1 = translate (-190) (60) (scale 0.12 0.12 (text "Player1 use PgUp/PgDn to control the right bat"))
     instruction1_diff = translate (-180) (30) (scale 0.12 0.12 (text "Player1 use '1' to tune the bat length"))
+    ai = translate (-100) (40) (scale 0.12 0.12 (text "Player1 is controlled by AI"))
     bat1_shape bat1_height = translate (0) (0) (color bat_Color (rectangleSolid bat1_height (10)))
     instruction2 = translate (-180) (-30) (scale 0.12 0.12 (text "Player2 use W/S to control the left bat"))
     instruction2_diff = translate (-180) (-60) (scale 0.12 0.12 (text "Player2 use '2' to tune the bat length"))
     bat2_shape bat2_height = translate (0) (-90) (color bat_Color (rectangleSolid bat2_height (10)))
-    next  = translate (-110) (-170) (scale 0.2 0.2 (text "Press Q to play"))
+    next  = translate (-110) (-150) (scale 0.2 0.2 (text "Press Q to play"))
+    mod  = translate (-170) (-190) (scale 0.2 0.2 (text "Press M to change mode"))
     -- End Scene
     endTitle    = if (p1score game == win_score)
                        then
@@ -308,6 +315,10 @@ handleKeys (EventKey (Char 'w') Up _ _) game = game {bat2state = 0}
 handleKeys (EventKey (SpecialKey KeyPageUp) Up _ _) game = game {bat1state = 0}
 handleKeys (EventKey (SpecialKey KeyPageDown) Up _ _) game = game {bat1state = 0}
 
+handleKeys (EventKey (Char 'm') Down _ _) game = case (ai_mod game) of
+                                                                                    0 -> game {ai_mod = 1}
+                                                                                    1 -> game {ai_mod = 0}
+
 -- Out of the End Scene
 handleKeys (EventKey (Char 'q') Down _ _) game = case (sceneState game) of
                                                  0 -> game {sceneState = 1}
@@ -316,6 +327,8 @@ handleKeys (EventKey (Char 'q') Down _ _) game = case (sceneState game) of
 
 -- Do nothing for all other events.
 handleKeys _ game = game
+
+
 
 
 
