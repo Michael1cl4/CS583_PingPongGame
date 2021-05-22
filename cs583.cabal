@@ -47,6 +47,7 @@ executable cs583-exe
       base >=4.7 && <5
     , gloss == 1.*
     , cs583
+    , random
   default-language: Haskell2010
 
 test-suite cs583-test

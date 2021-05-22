@@ -6,6 +6,8 @@ module Main where
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss.Data.ViewPort
+import System.Random
+import System.IO.Unsafe
 
 -- | The size of our playground
 boundary_width, boundary_height, boundary_offset :: Float
@@ -147,9 +149,8 @@ render game = case (sceneState game) of
 
 -- | Update the ball position using its current velocity.
 movement :: Float -> PPG -> PPG
-movement seconds game = if (sceneState game) == 1 
-                        then
-                        game { ballPos = (x', y'), bat1 = y'', bat2 = y'''}
+movement seconds game = if (sceneState game) == 1
+                        then game { ballPos = (x', y'), bat1 = y'', bat2 = y'''}
                         else game
   where
     -- Old Positions and velocities
@@ -161,10 +162,16 @@ movement seconds game = if (sceneState game) == 1
     y' = y + vy * seconds
 
     -- New Position of bat
-    y'' = case (bat1state game) of
-            0 -> (bat1 game)
-            1 -> (bat1 game) + 5
-            2 -> (bat1 game) - 5
+    x1 = unsafePerformIO (getStdRandom (randomR (0.5, 1.5)))
+    y'' = if (ai_mod game == 0) then
+                case (bat1state game) of
+                0 -> (bat1 game)
+                1 -> (bat1 game) + 5
+                2 -> (bat1 game) - 5
+             else
+               if y > (bat1 game) 
+               then (bat1 game) + x1
+               else (bat1 game) - x1
     y''' = case (bat2state game) of
             0 -> (bat2 game)
             1 -> (bat2 game) + 5
@@ -312,8 +319,10 @@ handleKeys (EventKey (Char '2') Down _ _) game = if ( (sceneState game) == 0) th
 
 handleKeys (EventKey (Char 's') Up _ _) game = game {bat2state = 0}
 handleKeys (EventKey (Char 'w') Up _ _) game = game {bat2state = 0}
-handleKeys (EventKey (SpecialKey KeyPageUp) Up _ _) game = game {bat1state = 0}
-handleKeys (EventKey (SpecialKey KeyPageDown) Up _ _) game = game {bat1state = 0}
+handleKeys (EventKey (SpecialKey KeyPageUp) Up _ _) game = if ((ai_mod game) == 0) then game {bat1state = 0}
+                                                           else game
+handleKeys (EventKey (SpecialKey KeyPageDown) Up _ _) game = if ((ai_mod game) == 0) then game {bat1state = 0}
+                                                             else game
 
 handleKeys (EventKey (Char 'm') Down _ _) game = case (ai_mod game) of
                                                                                     0 -> game {ai_mod = 1}
@@ -327,8 +336,3 @@ handleKeys (EventKey (Char 'q') Down _ _) game = case (sceneState game) of
 
 -- Do nothing for all other events.
 handleKeys _ game = game
-
-
-
-
-
