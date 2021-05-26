@@ -1,20 +1,30 @@
-# CS583_Final Project
-Yinchao Zhu, zhuyin@oregonstate.edu
-Haoyuan Qiu, qiuha@oregonstate.edu
-Shukan Nieh, niehsh@oregonstate.edu
+# CS583_Final Project_Ping_Pong_Game
+- Yinchao Zhu, zhuyin@oregonstate.edu
+- Haoyuan Qiu, qiuha@oregonstate.edu
+- Shukan Nieh, niehsh@oregonstate.edu
 
-## [A brief description of your project goals (you can take this from your project proposal), and your current progress toward achieving those goals.]
-Our project goal is to develop a ping-pong game using Haskell. At this point, the game can run correctly, including move the bat, move the ball, the bat can rebound the ball correctly. We also have achieved the framework of switching different scenes. Although the count board cannot show the real-time score right now, we decide to achieve that in the next milestone. And the difficulty extension part which can change the difficulty by modifying the ball’s speed and the length of the bats are still under development.
+## A brief description
+Our project goal is to develop a ping-pong game using Haskell. At this point, the functionalities of the game can run correctly, including:
+1. Movement of the bat, the ball, and the ball's rebound.
+2. Switching different scenes from Instruction, Play, and End. 
+3. Scoring board establishment.
+4. Separate the global variables, handle keys, and main file.
+5. The difficulty mechanism:
+    a. The ball will speed up automatically when it hits the bat to bring a more exciting late game experience. 
+    b. Players can tune their bat's length to take more challenges.
+6. Two playing mode construction:
+    a. Player-to-AI battle mode.
+    b. Player-to-player battle mode.
 
 
-## [Instructions for how to run your project (e.g. which file to load in GHCi), including several example inputs, if applicable.]
+## Instructions for running
 1. stack is needed for our project. You can visit the following website to install.
    https://docs.haskellstack.org/en/stable/install_and_upgrade/
    Windows users can click “Windows 64-bit Installer” to install manually.
 2. Once you have successfully installed it, you can use your terminal cd to the root directory of our project and type “stack build” to compile.
 3. After that, you can type “stack run” to enjoy our PingPong Game.
 
-## [Notes]
+## Notes
 By now, the scoreboard and winning info. of our game are still under construction.
 Some of you may encounter a missing file / unknown error when running “stack build”.
 One possible solution is:
@@ -22,8 +32,14 @@ Copy the glut32.dll we provided in the root directory to /root/.stack-work/insta
 This makes sense when we test :)
 
 
-## [In Milestone #1: a list of 2–4 design questions that you have about your project, that you would like to discuss during the workshop.]
+## Milestone #1
 1. When we were trying to implement the difficulty into our program, we met a problem that the speed change may cause the function of bat collision to fail. 
-   We found the reason is that the position of the ball may not equal to the bat position. Therefore, our collision function won’t consider the ball touching the bat.
-2. Because it’s the first version of the program, we are trying to make sure the scheme of the game is workable. For example, defining the game state, changing the scene of the game, creating the counting board, controlling bats’ position, and moving the ball. However, many logical functions have similar types, such as the judgement of the bat collision, the judgement of the wall collision, and the judgement of the winner. It’s better to define an extendible class to make the whole program look more structural. 
+   We found the reason is that the position of the ball may not equal to the bat position. Therefore, our collision function won't consider the ball touching the bat.
+2. Because it’s the first version of the program, we are trying to make sure the scheme of the game is workable. For example, defining the game state, changing the scene of the game, creating the counting board, controlling bats’ position, and moving the ball. However, many logical functions have similar types, such as the judgement of the bat collision, the judgement of the wall collision, and the judgement of the winner. It’s better to define an extendible class to make the whole program look more structural.
 3. Using artificial intelligence to control one of the bats would be a challenge for us because there are still some mechanisms and modifications of the recent functions that need to be done.
+
+
+## Milestone #2
+1. We implemented the Gloss module to draw the graph and handle the key reaction. After researching some information, Gloss is the best choice because it is based on OpenGL but it is easy to use and can generate cool graphics in a short time.
+2. When we update the game state for each scene, we use the function composition idea to combine the different functions for calculating the position, velocity and win/lose.
+3. We are still under construction to build a self-designed game state monad which applies to some functions like movement, collision, and out-of-bound. We would appreciate it if anyone can give us more suggestions.
