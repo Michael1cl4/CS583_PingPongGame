@@ -48,7 +48,7 @@ render game = case (sceneState game) of
   where
     -- Instruction Scene
     welcome = translate (-185) 110 (scale 0.2 0.2 (text "Welcome to PingPong Game"))
-    instruction1 = translate (-190) (60) (scale 0.12 0.12 (text "Player1 use O/L to control the right bat"))
+    instruction1 = translate (-180) (60) (scale 0.12 0.12 (text "Player1 use O/L to control the right bat"))
     instruction1_diff = translate (-180) (30) (scale 0.12 0.12 (text "Player1 use '1' to tune the bat length"))
     ai = translate (-100) (40) (scale 0.12 0.12 (text "Player1 is controlled by AI"))
     bat1_shape bat1_height = translate (0) (0) (color bat_Color (rectangleSolid bat1_height (10)))
