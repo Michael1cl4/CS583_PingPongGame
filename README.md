@@ -10,11 +10,11 @@ Our project goal is to develop a ping-pong game using Haskell. At this point, th
 3. Scoring board establishment.
 4. Separate the global variables, handle keys, and main file.
 5. The difficulty mechanism:
-    a. The ball will speed up automatically when it hits the bat to bring a more exciting late game experience. 
-    b. Players can tune their bat's length to take more challenges.
+    - The ball will speed up automatically when it hits the bat to bring a more exciting late game experience. 
+    - Players can tune their bat's length to take more challenges.
 6. Two playing mode construction:
-    a. Player-to-AI battle mode.
-    b. Player-to-player battle mode.
+    - Player-to-AI battle mode.
+    - Player-to-player battle mode.
 
 
 ## Instructions for running
@@ -25,7 +25,6 @@ Our project goal is to develop a ping-pong game using Haskell. At this point, th
 3. After that, you can type “stack run” to enjoy our PingPong Game.
 
 ## Notes
-By now, the scoreboard and winning info. of our game are still under construction.
 Some of you may encounter a missing file / unknown error when running “stack build”.
 One possible solution is:
 Copy the glut32.dll we provided in the root directory to /root/.stack-work/install/(some magic words)/bin, along with the cs583-exe.exe
