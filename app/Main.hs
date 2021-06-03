@@ -39,11 +39,10 @@ main = play window background_Color 120 initialState render handleKeys update
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
 render game = case (sceneState game) of
-                0 -> if  (ai_mod game == 1)
-                     then pictures [ai , instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                     else pictures [instruction1, instruction1_diff, bat1_shape (bat1_height game), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                1 -> pictures [ball, walls, mkBat rose bat1x (bat1 game) (bat1_height game), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
-                2 -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
+                Instruction WithAI -> pictures [ai , instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
+                Instruction WithUser -> pictures [instruction1, instruction1_diff, bat1_shape (bat1_height game), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
+                Play _ -> pictures [ball, walls, mkBat rose bat1x (bat1 game) (bat1_height game), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
+                End -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
     welcome = translate (-185) 110 (scale 0.2 0.2 (text "Welcome to PingPong Game"))
@@ -88,22 +87,22 @@ moveball ballStat seconds = ballStat { posx = posx ballStat + velx ballStat * se
                                      , posy = posy ballStat + vely ballStat * seconds}
 
 movement :: Float -> PPG -> PPG
-movement seconds game = if (sceneState game) == 1
-                        then game { ballStat = moveball (ballStat game) seconds
-                                  , bat1 = y''
-                                  , bat2 = y'''}
-                        else game
+movement seconds game = case sceneState game of
+                        Play WithUser -> game { ballStat = moveball (ballStat game) seconds
+                                              , bat1 = case (bat1state game) of
+                                                        0 -> (bat1 game)
+                                                        1 -> (bat1 game) + 5
+                                                        2 -> (bat1 game) - 5
+                                              , bat2 = y'''}
+                        Play WithAI   -> game { ballStat = moveball (ballStat game) seconds
+                                              , bat1 = if posy (ballStat game) > (bat1 game)
+                                                       then (bat1 game) + x1
+                                                       else (bat1 game) - x1
+                                              , bat2 = y'''}
+                        _             -> game
   where
     -- New Position of bat
     x1 = unsafePerformIO (getStdRandom (randomR (0.5, 1.5)))
-    y'' = if (ai_mod game == 0) then
-                case (bat1state game) of
-                0 -> (bat1 game)
-                1 -> (bat1 game) + 5
-                2 -> (bat1 game) - 5
-          else if posy (ballStat game) > (bat1 game)
-          then (bat1 game) + x1
-          else (bat1 game) - x1
     y''' = case (bat2state game) of
             0 -> (bat2 game)
             1 -> (bat2 game) + 5
@@ -174,7 +173,7 @@ outofBound game = case outDirChk (ballStat game) of
 
 finishCheck :: PPG -> PPG
 finishCheck game = if  (p2score game) == win_score || (p1score game) == win_score
-                   then game {sceneState = 2}
+                   then game {sceneState = End}
                    else game
 
 -- | Update the game by moving the ball and bouncing off walls.

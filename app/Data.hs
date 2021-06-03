@@ -25,6 +25,16 @@ win_score = 5
 ball_radius :: Float
 ball_radius = 10
 
+data PlayMod = WithUser
+             | WithAI
+  deriving (Eq, Show)
+
+data SceneStat = Instruction PlayMod
+               | Play PlayMod
+               | End
+  deriving (Eq, Show)
+
+-- | Boundary for the movement of ball and bat
 data Boundary = RightBound
               | LeftBound
               | TopBound
@@ -32,6 +42,7 @@ data Boundary = RightBound
               | Center
   deriving (Eq, Show)
 
+-- | Ball Status Data
 data BS = BallStatue
   { posx :: Float  -- ^ Pong ball (x, y) Position.
   , posy :: Float
@@ -39,16 +50,6 @@ data BS = BallStatue
   , vely :: Float
   , ballspeed :: Float
   }deriving Show
-
-initballState :: BS
-initballState = BallStatue
-  { posx = -10
-  , posy = 30
-  , velx = -30
-  , vely = -40
-  , ballspeed = 1.2
-  }
-
 
 -- | Ping Pong Game State 
 data PPG = Game
@@ -58,12 +59,11 @@ data PPG = Game
   , bat2 :: Float                      -- ^ Right player bat height.
   , bat1state :: Int                 -- 0: stop, 1: move up, 2: move down
   , bat2state :: Int                 -- 0: stop, 1: move up, 2: move down
-  , sceneState :: Int                -- 0: Instruction, 1: Play, 2: End
+  , sceneState :: SceneStat
   , p1score :: Int
   , p2score :: Int
   , bat1_height :: Float
   , bat2_height :: Float
-  , ai_mod :: Int
   } deriving Show
 
 -- | The Initial State of the PPG
@@ -74,12 +74,21 @@ initialState = Game
   , bat2 = -80
   , bat1state = 0
   , bat2state = 0
-  , sceneState = 0
+  , sceneState = Instruction WithUser
   , p1score = 0
   , p2score = 0
   , bat1_height = 80
   , bat2_height = 80
-  , ai_mod = 0
+  }
+
+-- | The Initial State of the BS
+initballState :: BS
+initballState = BallStatue
+  { posx = -10
+  , posy = 30
+  , velx = -30
+  , vely = -40
+  , ballspeed = 1.2
   }
 
 -- | For Reading the function much easier 
