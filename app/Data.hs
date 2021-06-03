@@ -45,7 +45,7 @@ initballState = BallStatue
 
 -- | Ping Pong Game State 
 data PPG = Game
-  { ballStatus :: BS    
+  { ballStat :: BS
   , bat1 :: Float                     -- ^ Left player bat height.
                                             -- Zero is the middle of the screen. 
   , bat2 :: Float                      -- ^ Right player bat height.
@@ -62,7 +62,7 @@ data PPG = Game
 -- | The Initial State of the PPG
 initialState :: PPG
 initialState = Game
-  { ballStatus = initballState
+  { ballStat = initballState
   , bat1 = 40
   , bat2 = -80
   , bat1state = 0
