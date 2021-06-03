@@ -164,16 +164,16 @@ wallCollision y = topCollision || bottomCollision
     topCollision    = y - ball_radius <= - boundary_height / 2 
     bottomCollision = y + ball_radius >=  boundary_height / 2
 
+outDirChk :: BS -> Int
+outDirChk ballStat = if posx ballStat <= ball_radius - boundary_width /2      then 1
+                     else if posx ballStat >= boundary_width /2 - ball_radius then 2
+                     else 0
 -- | Judge Win/Lose
 outofBound :: PPG -> PPG
-outofBound game = if leftout (posx (ballStat game))
-                  then game {p1score = (p1score game) + 1, ballStat = initballState }
-                  else if rightout (posx (ballStat game))
-                  then game {p2score = (p2score game) + 1, ballStat = initballState}
-                  else game
-  where
-    leftout ball_x = ball_x - ball_radius <= -boundary_width /2
-    rightout ball_x = ball_x + ball_radius >= boundary_width /2
+outofBound game = case outDirChk (ballStat game) of
+                  0 -> game
+                  1 -> game {p1score = (p1score game) + 1, ballStat = initballState }
+                  2 -> game {p2score = (p2score game) + 1, ballStat = initballState}
 
 finishCheck :: PPG -> PPG
 finishCheck game = if  (p2score game) == win_score || (p1score game) == win_score
