@@ -134,12 +134,13 @@ batCollision game = (leftXRange (posx (ballStat game)) (posy (ballStat game)) (b
 
 -- | Detect a collision with one of the side walls. Upon collisions,
 -- update the velocity of the ball to bounce it off the wall.
-chgBallVwall :: BS -> Bool -> BS
-chgBallVwall ballStat True  = ballStat {vely = -vely ballStat}
-chgBallVwall ballStat False = ballStat {vely = vely ballStat}
+chgBallVwall :: BS -> Boundary -> BS
+chgBallVwall ballStat TopBound    = ballStat {vely = -vely ballStat}
+chgBallVwall ballStat BottomBound = ballStat {vely = -vely ballStat}
+chgBallVwall ballStat _           = ballStat
 
 wallBounce :: PPG -> PPG
-wallBounce game = game { ballStat = chgBallVwall (ballStat game) (wallCollision (posy (ballStat game)))
+wallBounce game = game { ballStat = chgBallVwall (ballStat game) (outDirChk (ballStat game))
                        , bat1 = y'' 
                        , bat2 = y''' }
   where
@@ -157,23 +158,19 @@ wallBounce game = game { ballStat = chgBallVwall (ballStat game) (wallCollision 
            then -(boundary_height - (bat2_height game)) / 2
            else p2y
 
--- | Given position and radius of the ball, return whether a collision occurred.
-wallCollision :: Float -> Bool 
-wallCollision y = topCollision || bottomCollision
-  where
-    topCollision    = y - ball_radius <= - boundary_height / 2 
-    bottomCollision = y + ball_radius >=  boundary_height / 2
-
 outDirChk :: BS -> Boundary
-outDirChk ballStat = if posx ballStat <= ball_radius - boundary_width /2      then Left
-                     else if posx ballStat >= boundary_width /2 - ball_radius then Right
+outDirChk ballStat = if posx ballStat <= ball_radius - boundary_width /2       then LeftBound
+                     else if posx ballStat >= boundary_width /2 - ball_radius  then RightBound
+                     else if posy ballStat <= ball_radius - boundary_height /2 then TopBound
+                     else if posy ballStat >= boundary_height /2 - ball_radius then BottomBound
                      else Center
+
 -- | Judge Win/Lose
 outofBound :: PPG -> PPG
 outofBound game = case outDirChk (ballStat game) of
-                    Center -> game
-                    Left -> game {p1score = (p1score game) + 1, ballStat = initballState }
-                    Right -> game {p2score = (p2score game) + 1, ballStat = initballState}
+                    LeftBound  -> game {p1score = (p1score game) + 1, ballStat = initballState }
+                    RightBound -> game {p2score = (p2score game) + 1, ballStat = initballState}
+                    _          -> game
 
 finishCheck :: PPG -> PPG
 finishCheck game = if  (p2score game) == win_score || (p1score game) == win_score

@@ -25,10 +25,10 @@ win_score = 5
 ball_radius :: Float
 ball_radius = 10
 
-data Boundary = Right
-              | Left
-              | Top
-              | Bottom
+data Boundary = RightBound
+              | LeftBound
+              | TopBound
+              | BottomBound
               | Center
   deriving (Eq, Show)
 
