@@ -7,7 +7,7 @@ import Data
 handleKeys :: Event -> PPG -> PPG
 
 -- For an 'space' keypress, reset the ball.
-handleKeys (EventKey (SpecialKey KeySpace) _ _ _) game = game { ballPos = (0, 0) }
+handleKeys (EventKey (SpecialKey KeySpace) _ _ _) game = game { ballStatus = initballState }
 
 -- For an KeyUp keypress, move up the bat1.
 handleKeys (EventKey (Char 'w') Down _ _) game = game {bat2state = 1}

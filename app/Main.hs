@@ -71,7 +71,7 @@ render game = case (sceneState game) of
     colon = translate 0 165 (scale 0.2 0.2 (text (":")))
     player2_score = translate (-60) 165 (scale 0.2 0.2 (text (show(p2score game))))
     --  The pong ball.
-    ball = uncurry translate (ballPos game) ( color ball_Color  (circleSolid 10))
+    ball = uncurry translate (posx (ballStatus game), posy (ballStatus game)) ( color ball_Color  (circleSolid 10))
 
     --  The bottom and top walls.
     wall :: Float -> Picture
@@ -85,19 +85,18 @@ render game = case (sceneState game) of
     mkBat col x y h = pictures [translate x y (color bat_Color (rectangleSolid bat_width h))]
 
 -- | Update the ball position using its current velocity.
+moveball :: BS -> Float -> BS
+moveball ballStatus seconds = ballStatus { posx = posx ballStatus + velx ballStatus * seconds
+                                         , posy = posy ballStatus + vely ballStatus * seconds
+                                         }
+
 movement :: Float -> PPG -> PPG
 movement seconds game = if (sceneState game) == 1
-                        then game { ballPos = (x', y'), bat1 = y'', bat2 = y'''}
+                        then game { ballStatus = moveball (ballStatus game) seconds
+                                  , bat1 = y''
+                                  , bat2 = y'''}
                         else game
   where
-    -- Old Positions and velocities
-    (x, y) = ballPos game
-    (vx, vy) = ballVel game
-     
-    -- New Positions.
-    x' = x + vx * seconds
-    y' = y + vy * seconds
-
     -- New Position of bat
     x1 = unsafePerformIO (getStdRandom (randomR (0.5, 1.5)))
     y'' = if (ai_mod game == 0) then
@@ -106,7 +105,7 @@ movement seconds game = if (sceneState game) == 1
                 1 -> (bat1 game) + 5
                 2 -> (bat1 game) - 5
              else
-               if y > (bat1 game) 
+               if posy (ballStatus game) > (bat1 game) 
                then (bat1 game) + x1
                else (bat1 game) - x1
     y''' = case (bat2state game) of
@@ -117,15 +116,24 @@ movement seconds game = if (sceneState game) == 1
 
 -- | Detect a collision with a bat. Upon collisions,
 -- change the velocity of the ball to bounce it off the bat.
+changeballvelbat :: BS -> Bool -> BS
+changeballvelbat ballStatus True  = ballStatus { velx = -velx ballStatus * ballspeed ballStatus
+                                            , vely = vely ballStatus * ballspeed ballStatus
+                                            }
+changeballvelbat ballStatus False = ballStatus {velx = -velx ballStatus}
+
 batBounce :: PPG -> PPG
-batBounce game = game {ballVel = (vx', vy')}
+batBounce game = case batCollision game of
+                 True  -> game{ballStatus = changeballvelbat (ballStatus game) (abs(velx (ballStatus game)) * ballspeed (ballStatus game) < 150 && abs(vely (ballStatus game)) * ballspeed (ballStatus game) < 200)
+                              }
+                 False -> game
+{-
+game {ballVel = (vx', vy')}
   where
     -- Radius. Use the same thing as in `render`.
     radius = 10
     -- The old velocities.
     (vx, vy) = ballVel game
- --   (x, y) = ballPos game
-
     (vx', vy') = if batCollision game radius
           then
             -- Update the velocity.
@@ -137,34 +145,28 @@ batBounce game = game {ballVel = (vx', vy')}
           else
             -- Do nothing. Return the old velocity.
             (vx, vy)
-
+-}
 -- | Given position and radius of the ball, return whether a collision occurred.
-batCollision :: PPG -> Radius -> Bool
-batCollision game radius = (leftXRange (ballPos game) (bat2 game) (bat2_height game) || rightXRange (ballPos game) (bat1 game) (bat1_height game))
+batCollision :: PPG -> Bool
+batCollision game = (leftXRange (posx (ballStatus game)) (posy (ballStatus game)) (bat2 game) (bat2_height game)
+                 || rightXRange (posx (ballStatus game)) (posy (ballStatus game)) (bat1 game) (bat1_height game))
   where
-    leftXRange (x,ball_y) bat_y bat_h = ( floor(x - radius) == floor(bat2x + bat_width / 2))
+    leftXRange x ball_y bat_y bat_h = ( floor(x - ball_radius) == floor(bat2x + bat_width / 2))
                                && ((ball_y <= bat_h / 2 + bat_y) && (ball_y >= -bat_h / 2 + bat_y))
-    rightXRange (x,ball_y) bat_y bat_h = (floor(x + radius) ==  floor(bat1x - bat_width / 2))
+    rightXRange x ball_y bat_y bat_h = (floor(x + ball_radius) ==  floor(bat1x - bat_width / 2))
                                && ((ball_y <= bat_h / 2 + bat_y) && (ball_y >= -bat_h / 2 + bat_y))
 
 -- | Detect a collision with one of the side walls. Upon collisions,
 -- update the velocity of the ball to bounce it off the wall.
+changeballvelwall :: BS -> Bool -> BS
+changeballvelwall ballStatus True  = ballStatus {vely = -vely ballStatus}
+changeballvelwall ballStatus False = ballStatus {vely = vely ballStatus}
+
 wallBounce :: PPG -> PPG
-wallBounce game = game { ballVel = (vx, vy'), bat1 = y'' , bat2 = y''' }
+wallBounce game = game { ballStatus = changeballvelwall (ballStatus game) (wallCollision (posy (ballStatus game)))
+                       , bat1 = y'' 
+                       , bat2 = y''' }
   where
-    -- Radius. Use the same thing as in `render`.
-    radius = 10
-    -- The old velocities.
-    (vx, vy) = ballVel game
-
-    vy' = if wallCollision (ballPos game) radius
-          then
-             -- Update the velocity.
-             -vy
-           else
-            -- Do nothing. Return the old velocity.
-            vy
-
     p1y = bat1 game
     y'' = if p1y >=  (boundary_height - (bat1_height game)) / 2
           then
@@ -188,23 +190,22 @@ wallBounce game = game { ballVel = (vx, vy'), bat1 = y'' , bat2 = y''' }
               p2y
 
 -- | Given position and radius of the ball, return whether a collision occurred.
-wallCollision :: Position -> Radius -> Bool 
-wallCollision (_, y) radius = topCollision || bottomCollision
+wallCollision :: Float -> Bool 
+wallCollision y = topCollision || bottomCollision
   where
-    topCollision    = y - radius <= - boundary_height / 2 
-    bottomCollision = y + radius >=  boundary_height / 2
+    topCollision    = y - ball_radius <= - boundary_height / 2 
+    bottomCollision = y + ball_radius >=  boundary_height / 2
 
 -- | Judge Win/Lose
 outofBound :: PPG -> PPG
-outofBound game = if leftout (ballPos game)
-                  then game {p1score = (p1score game) + 1, ballPos = (0, 0), ballVel = (-30, -40) }
-                  else if rightout (ballPos game)
-      then game {p2score = (p2score game) + 1, ballPos = (0, 0), ballVel = (-30, -40)}
+outofBound game = if leftout (posx (ballStatus game))
+                  then game {p1score = (p1score game) + 1, ballStatus = initballState }
+                  else if rightout (posx (ballStatus game))
+      then game {p2score = (p2score game) + 1, ballStatus = initballState}
       else game
   where
-    radius = 10
-    leftout (ball_x, _) = ball_x - radius <= -boundary_width /2
-    rightout (ball_x, _) = ball_x + radius >= boundary_width /2
+    leftout ball_x = ball_x - ball_radius <= -boundary_width /2
+    rightout ball_x = ball_x + ball_radius >= boundary_width /2
 
 finishCheck :: PPG -> PPG
 finishCheck game = if  (p2score game) == win_score || (p1score game) == win_score

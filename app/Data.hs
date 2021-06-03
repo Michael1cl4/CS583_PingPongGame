@@ -22,17 +22,36 @@ wall_height = 10
 win_score :: Int
 win_score = 5
 
+ball_radius :: Float
+ball_radius = 10
+
+data BS = BallStatue
+  { posx :: Float  -- ^ Pong ball (x, y) Position.
+  , posy :: Float
+  , velx :: Float  -- ^ Pong ball (x, y) Velocity. 
+  , vely :: Float
+  , ballspeed :: Float
+  }deriving Show
+
+initballState :: BS
+initballState = BallStatue
+  { posx = -10
+  , posy = 30
+  , velx = -30
+  , vely = -40
+  , ballspeed = 1.2
+  }
+
+
 -- | Ping Pong Game State 
 data PPG = Game
-  { ballPos :: (Float, Float)    -- ^ Pong ball (x, y) Position.
-  , ballVel :: (Float, Float)     -- ^ Pong ball (x, y) Velocity. 
+  { ballStatus :: BS    
   , bat1 :: Float                     -- ^ Left player bat height.
                                             -- Zero is the middle of the screen. 
   , bat2 :: Float                      -- ^ Right player bat height.
   , bat1state :: Int                 -- 0: stop, 1: move up, 2: move down
   , bat2state :: Int                 -- 0: stop, 1: move up, 2: move down
   , sceneState :: Int                -- 0: Instruction, 1: Play, 2: End
-  , ballspeed :: Float
   , p1score :: Int
   , p2score :: Int
   , bat1_height :: Float
@@ -43,14 +62,12 @@ data PPG = Game
 -- | The Initial State of the PPG
 initialState :: PPG
 initialState = Game
-  { ballPos = (-10, 30)
-  , ballVel = (-30, -40)
+  { ballStatus = initballState
   , bat1 = 40
   , bat2 = -80
   , bat1state = 0
   , bat2state = 0
   , sceneState = 0
-  , ballspeed = 1.2
   , p1score = 0
   , p2score = 0
   , bat1_height = 80
