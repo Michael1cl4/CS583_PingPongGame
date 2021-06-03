@@ -25,6 +25,13 @@ win_score = 5
 ball_radius :: Float
 ball_radius = 10
 
+data Boundary = Right
+              | Left
+              | Top
+              | Bottom
+              | Center
+  deriving (Eq, Show)
+
 data BS = BallStatue
   { posx :: Float  -- ^ Pong ball (x, y) Position.
   , posy :: Float
