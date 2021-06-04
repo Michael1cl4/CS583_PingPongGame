@@ -35,7 +35,7 @@ wall_width = 270
 wall_height = 10
 
 win_score :: Int
-win_score = 2
+win_score = 11
 
 ball_radius :: Float
 ball_radius = 10
