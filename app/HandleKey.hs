@@ -4,12 +4,12 @@ import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss.Data.ViewPort
 import Data
 
-setBat1Motion :: Bat1 -> Motion -> Bat1
-setBat1Motion batstat a = batstat {motion = a}
+setBatMotion :: Bat -> Motion -> Bat
+setBatMotion batstat a = batstat {motion = a}
 
-tuneBat1Len :: Bat1 -> Bat1
-tuneBat1Len bat1Stat = if bat1_len bat1Stat < 120 then bat1Stat {bat1_len = bat1_len bat1Stat + 20}
-                       else bat1Stat {bat1_len = 40}
+tuneBatLen :: Bat -> Bat
+tuneBatLen batstat = if bat_len batstat < 120 then batstat {bat_len = bat_len batstat + 20}
+                       else batstat {bat_len = 40}
 
 -- | Respond to key events.
 handleKeys :: Event -> PPG -> PPG
@@ -22,13 +22,13 @@ handleKeys (EventKey (Char 'w') Down _ _) game = game {bat2state = 1}
 -- For an KeyDown keypress, move down the bat2.
 handleKeys (EventKey (Char 's') Down _ _) game = game {bat2state = 2}
 -- For an KeyPageUp keypress, move up the bat1.
-handleKeys (EventKey (Char 'o') Down _ _) game = game {bat1Stat = setBat1Motion (bat1Stat game) BUp}
+handleKeys (EventKey (Char 'o') Down _ _) game = game {bat1Stat = setBatMotion (bat1Stat game) BUp}
 -- For an KeyPageDown keypress, move down the bat1.
-handleKeys (EventKey (Char 'l') Down _ _) game = game {bat1Stat = setBat1Motion (bat1Stat game) BDown}
+handleKeys (EventKey (Char 'l') Down _ _) game = game {bat1Stat = setBatMotion (bat1Stat game) BDown}
 
 -- For an “1” keypress, move up the bat1.
 handleKeys (EventKey (Char '1') Down _ _) game = case sceneState game of
-                                                 Instruction WithUser -> game {bat1Stat = tuneBat1Len (bat1Stat game)}
+                                                 Instruction WithUser -> game {bat1Stat = tuneBatLen (bat1Stat game)}
                                                  _                    -> game
 -- For an “2” keypress, move down the bat1.
 handleKeys (EventKey (Char '2') Down _ _) game = case sceneState game of
@@ -42,8 +42,8 @@ handleKeys (EventKey (Char '2') Down _ _) game = case sceneState game of
 
 handleKeys (EventKey (Char 's') Up _ _) game = game {bat2state = 0}
 handleKeys (EventKey (Char 'w') Up _ _) game = game {bat2state = 0}
-handleKeys (EventKey (Char 'o') Up _ _) game = game {bat1Stat = setBat1Motion (bat1Stat game) BStop}
-handleKeys (EventKey (Char 'l') Up _ _) game = game {bat1Stat = setBat1Motion (bat1Stat game) BStop}
+handleKeys (EventKey (Char 'o') Up _ _) game = game {bat1Stat = setBatMotion (bat1Stat game) BStop}
+handleKeys (EventKey (Char 'l') Up _ _) game = game {bat1Stat = setBatMotion (bat1Stat game) BStop}
 
 handleKeys (EventKey (Char 'm') Down _ _) game = case sceneState game of
                                                  Instruction WithUser -> game {sceneState = Instruction WithAI}

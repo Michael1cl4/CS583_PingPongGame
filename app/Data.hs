@@ -75,16 +75,16 @@ data BS = BallStatue
   }deriving Show
 
 -- | Left player Bat Status
-data Bat1 = Bat1Status
-  { bat1     :: Float  -- Position Y
-  , bat1_len :: Float  -- Length
+data Bat = BatStatus
+  { bat     :: Float  -- Position Y
+  , bat_len :: Float  -- Length
   , motion   :: Motion -- Motion
   }deriving Show
 
 -- | Ping Pong Game State 
 data PPG = Game
   { ballStat :: BS          -- Ball Status
-  , bat1Stat :: Bat1        -- Left player bat Status
+  , bat1Stat :: Bat         -- Left player bat Status
   , bat2 :: Float           -- Right player bat height.
   , bat2_height :: Float
   , bat2state :: Int        -- 0: stop, 1: move up, 2: move down
@@ -117,11 +117,11 @@ initballState = BallStatue
   }
 
 -- | The Initial State of the Bat1
-initbat1State :: Bat1
-initbat1State = Bat1Status
-  { bat1     = 40   -- Position Y
-  , bat1_len = 80   -- Length
-  , motion   = BStop -- Motion
+initbat1State :: Bat
+initbat1State = BatStatus
+  { bat     = 40   -- Position Y
+  , bat_len = 80   -- Length
+  , motion  = BStop -- Motion
   }
 
 -- | For Reading the function much easier 

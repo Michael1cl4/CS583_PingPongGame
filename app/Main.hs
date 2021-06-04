@@ -39,8 +39,8 @@ main = play window background_Color 120 initialState render handleKeys update
 render :: PPG  -> Picture
 render game = case (sceneState game) of
                 Instruction WithAI -> pictures [ai , instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                Instruction WithUser -> pictures [instruction1, instruction1_diff, bat1_shape (bat1_len (bat1Stat game)), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                Play _ -> pictures [ball, walls, mkBat rose bat1x (bat1 (bat1Stat game)) (bat1_len (bat1Stat game)), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
+                Instruction WithUser -> pictures [instruction1, instruction1_diff, bat1_shape (bat_len (bat1Stat game)), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
+                Play _ -> pictures [ball, walls, mkBat rose bat1x (bat (bat1Stat game)) (bat_len (bat1Stat game)), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
                 End -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
@@ -48,7 +48,7 @@ render game = case (sceneState game) of
     instruction1 = translate (-window_width/2 + instruction_adjust) (window_height/8) (scale small_font_size small_font_size (text "Player1 use O/L to control the right bat"))
     instruction1_diff = translate (-window_width/2 + instruction_adjust) (window_height/8 - instruction_adjust) (scale small_font_size small_font_size (text "Player1 use '1' to tune the bat length"))
     ai = translate (-window_width/4) (window_height/8) (scale small_font_size small_font_size (text "Player1 is controlled by AI"))
-    bat1_shape bat1_height = translate (0) (0) (color bat_Color (rectangleSolid bat1_height (10)))
+    bat1_shape bat_len = translate (0) (0) (color bat_Color (rectangleSolid bat_len (10)))
     instruction2 = translate (-window_width/2 + instruction_adjust) (-window_height/8 + instruction_adjust) (scale small_font_size small_font_size (text "Player2 use W/S to control the left bat"))
     instruction2_diff = translate (-window_width/2 + instruction_adjust) (-window_height/8) (scale small_font_size small_font_size (text "Player2 use '2' to tune the bat length"))
     bat2_shape bat2_height = translate (0) (-window_height/4 + instruction_adjust) (color bat_Color (rectangleSolid bat2_height (10)))
@@ -85,22 +85,22 @@ moveball :: BS -> Float -> BS
 moveball ballStat seconds = ballStat { posx = posx ballStat + velx ballStat * seconds
                                      , posy = posy ballStat + vely ballStat * seconds}
 
-movebat1 :: Bat1 -> BS -> Float -> PlayMod -> Bat1
-movebat1 bat1Stat ballStat a WithUser = bat1Stat { bat1 = case motion bat1Stat of
-                                                          BStop -> bat1 bat1Stat
-                                                          BUp   -> bat1 bat1Stat + a
-                                                          BDown -> bat1 bat1Stat - a }
-movebat1 bat1Stat ballStat a WithAI   = bat1Stat { bat1 = if posy ballStat > bat1 bat1Stat
-                                                          then bat1 bat1Stat + a
-                                                          else bat1 bat1Stat - a}
+movebat :: Bat -> BS -> Float -> PlayMod -> Bat
+movebat batStat ballStat a WithUser = batStat { bat = case motion batStat of
+                                                          BStop -> bat batStat
+                                                          BUp   -> bat batStat + a
+                                                          BDown -> bat batStat - a }
+movebat batStat ballStat a WithAI   = batStat { bat = if posy ballStat > bat batStat
+                                                          then bat batStat + a
+                                                          else bat batStat - a}
 
 movement :: Float -> PPG -> PPG
 movement seconds game = case sceneState game of
                         Play WithUser -> game { ballStat = moveball (ballStat game) seconds
-                                              , bat1Stat = movebat1 (bat1Stat game) (ballStat game) 5 WithUser
+                                              , bat1Stat = movebat (bat1Stat game) (ballStat game) 5 WithUser
                                               , bat2 = y'''}
                         Play WithAI   -> game { ballStat = moveball (ballStat game) seconds
-                                              , bat1Stat = movebat1 (bat1Stat game) (ballStat game) x1 WithAI
+                                              , bat1Stat = movebat (bat1Stat game) (ballStat game) x1 WithAI
                                               , bat2 = y'''}
                         _             -> game
   where
@@ -128,7 +128,7 @@ batBounce game = case batCollision game of
 
 batCollision :: PPG -> Bool
 batCollision game = (leftXRange (posx (ballStat game)) (posy (ballStat game)) (bat2 game) (bat2_height game)
-                 || rightXRange (posx (ballStat game)) (posy (ballStat game)) (bat1 (bat1Stat game)) (bat1_len (bat1Stat game)))
+                 || rightXRange (posx (ballStat game)) (posy (ballStat game)) (bat (bat1Stat game)) (bat_len (bat1Stat game)))
   where
     leftXRange x ball_y bat_y bat_h = ( floor(x - ball_radius) == floor(bat2x + bat_width / 2))
                                && ((ball_y <= bat_h / 2 + bat_y) && (ball_y >= -bat_h / 2 + bat_y))
@@ -142,16 +142,16 @@ chgBallVwall ballStat TopBound    = ballStat {vely = -vely ballStat}
 chgBallVwall ballStat BottomBound = ballStat {vely = -vely ballStat}
 chgBallVwall ballStat _           = ballStat
 
-chgBat1wall :: Bat1 -> Bat1
-chgBat1wall bat1Stat = bat1Stat { bat1 = if bat1 bat1Stat >= (boundary_height - bat1_len bat1Stat) / 2
-                                         then (boundary_height - bat1_len bat1Stat) / 2
-                                         else if bat1 bat1Stat <=  -(boundary_height - bat1_len bat1Stat) / 2
-                                         then -(boundary_height - bat1_len bat1Stat) / 2
-                                         else bat1 bat1Stat }
+chgBatwall :: Bat -> Bat
+chgBatwall batStat = batStat { bat = if bat batStat >= (boundary_height - bat_len batStat) / 2
+                                         then (boundary_height - bat_len batStat) / 2
+                                         else if bat batStat <=  -(boundary_height - bat_len batStat) / 2
+                                         then -(boundary_height - bat_len batStat) / 2
+                                         else bat batStat }
 
 wallBounce :: PPG -> PPG
 wallBounce game = game { ballStat = chgBallVwall (ballStat game) (outDirChk (ballStat game))
-                       , bat1Stat = chgBat1wall (bat1Stat game)
+                       , bat1Stat = chgBatwall (bat1Stat game)
                        , bat2 = y''' }
   where
     p2y = bat2 game
