@@ -40,8 +40,8 @@ main = play window background_Color 120 initialState render handleKeys update
 render :: PPG  -> Picture
 render game = case (sceneState game) of
                 Instruction WithAI -> pictures [ai , instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                Instruction WithUser -> pictures [instruction1, instruction1_diff, bat1_shape (bat1_height game), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                Play _ -> pictures [ball, walls, mkBat rose bat1x (bat1 game) (bat1_height game), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
+                Instruction WithUser -> pictures [instruction1, instruction1_diff, bat1_shape (bat1_len (bat1Stat game)), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
+                Play _ -> pictures [ball, walls, mkBat rose bat1x (bat1 (bat1Stat game)) (bat1_len (bat1Stat game)), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
                 End -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
@@ -86,18 +86,22 @@ moveball :: BS -> Float -> BS
 moveball ballStat seconds = ballStat { posx = posx ballStat + velx ballStat * seconds
                                      , posy = posy ballStat + vely ballStat * seconds}
 
+movebat1 :: Bat1 -> BS -> Float -> PlayMod -> Bat1
+movebat1 bat1Stat ballStat a WithUser = bat1Stat { bat1 = case motion bat1Stat of
+                                                          BStop -> bat1 bat1Stat
+                                                          BUp   -> bat1 bat1Stat + a
+                                                          BDown -> bat1 bat1Stat - a }
+movebat1 bat1Stat ballStat a WithAI   = bat1Stat { bat1 = if posy ballStat > bat1 bat1Stat
+                                                          then bat1 bat1Stat + a
+                                                          else bat1 bat1Stat - a}
+
 movement :: Float -> PPG -> PPG
 movement seconds game = case sceneState game of
                         Play WithUser -> game { ballStat = moveball (ballStat game) seconds
-                                              , bat1 = case (bat1state game) of
-                                                        0 -> (bat1 game)
-                                                        1 -> (bat1 game) + 5
-                                                        2 -> (bat1 game) - 5
+                                              , bat1Stat = movebat1 (bat1Stat game) (ballStat game) 5 WithUser
                                               , bat2 = y'''}
                         Play WithAI   -> game { ballStat = moveball (ballStat game) seconds
-                                              , bat1 = if posy (ballStat game) > (bat1 game)
-                                                       then (bat1 game) + x1
-                                                       else (bat1 game) - x1
+                                              , bat1Stat = movebat1 (bat1Stat game) (ballStat game) x1 WithAI
                                               , bat2 = y'''}
                         _             -> game
   where
@@ -122,9 +126,10 @@ batBounce game = case batCollision game of
                               }
                  False -> game
 -- | Given position and radius of the ball, return whether a collision occurred.
+
 batCollision :: PPG -> Bool
 batCollision game = (leftXRange (posx (ballStat game)) (posy (ballStat game)) (bat2 game) (bat2_height game)
-                 || rightXRange (posx (ballStat game)) (posy (ballStat game)) (bat1 game) (bat1_height game))
+                 || rightXRange (posx (ballStat game)) (posy (ballStat game)) (bat1 (bat1Stat game)) (bat1_len (bat1Stat game)))
   where
     leftXRange x ball_y bat_y bat_h = ( floor(x - ball_radius) == floor(bat2x + bat_width / 2))
                                && ((ball_y <= bat_h / 2 + bat_y) && (ball_y >= -bat_h / 2 + bat_y))
@@ -138,18 +143,18 @@ chgBallVwall ballStat TopBound    = ballStat {vely = -vely ballStat}
 chgBallVwall ballStat BottomBound = ballStat {vely = -vely ballStat}
 chgBallVwall ballStat _           = ballStat
 
+chgBat1wall :: Bat1 -> Bat1
+chgBat1wall bat1Stat = bat1Stat { bat1 = if bat1 bat1Stat >= (boundary_height - bat1_len bat1Stat) / 2
+                                         then (boundary_height - bat1_len bat1Stat) / 2
+                                         else if bat1 bat1Stat <=  -(boundary_height - bat1_len bat1Stat) / 2
+                                         then -(boundary_height - bat1_len bat1Stat) / 2
+                                         else bat1 bat1Stat }
+
 wallBounce :: PPG -> PPG
 wallBounce game = game { ballStat = chgBallVwall (ballStat game) (outDirChk (ballStat game))
-                       , bat1 = y'' 
+                       , bat1Stat = chgBat1wall (bat1Stat game)
                        , bat2 = y''' }
   where
-    p1y = bat1 game
-    y'' = if p1y >=  (boundary_height - (bat1_height game)) / 2
-          then (boundary_height - (bat1_height game)) / 2
-          else if p1y <=  -(boundary_height - (bat1_height game)) / 2
-          then -(boundary_height - (bat1_height game)) / 2
-          else p1y
-
     p2y = bat2 game
     y''' = if p2y >=  (boundary_height - (bat2_height game)) / 2
            then (boundary_height - (bat2_height game)) / 2
