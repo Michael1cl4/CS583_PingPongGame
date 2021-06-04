@@ -35,7 +35,7 @@ wall_width = 270
 wall_height = 10
 
 win_score :: Int
-win_score = 1
+win_score = 2
 
 ball_radius :: Float
 ball_radius = 10
@@ -78,19 +78,16 @@ data BS = BallStatue
 data Bat = BatStatus
   { bat     :: Float  -- Position Y
   , bat_len :: Float  -- Length
-  , motion   :: Motion -- Motion
+  , motion  :: Motion -- Motion
+  , score   :: Int
   }deriving Show
 
 -- | Ping Pong Game State 
 data PPG = Game
-  { ballStat :: BS          -- Ball Status
-  , bat1Stat :: Bat         -- Left player bat Status
-  , bat2 :: Float           -- Right player bat height.
-  , bat2_height :: Float
-  , bat2state :: Int        -- 0: stop, 1: move up, 2: move down
+  { ballStat   :: BS          -- Ball Status
+  , bat1Stat   :: Bat         -- Left player bat Status
+  , bat2Stat   :: Bat
   , sceneState :: SceneStat -- Scene Status
-  , p1score :: Int
-  , p2score :: Int
   } deriving Show
 
 -- | The Initial State of the PPG
@@ -98,12 +95,8 @@ initialState :: PPG
 initialState = Game
   { ballStat = initballState
   , bat1Stat = initbat1State
-  , bat2 = -80
-  , bat2state = 0
-  , bat2_height = 80
+  , bat2Stat = initbat2State
   , sceneState = Instruction WithUser
-  , p1score = 0
-  , p2score = 0
   }
 
 -- | The Initial State of the BS
@@ -122,6 +115,15 @@ initbat1State = BatStatus
   { bat     = 40   -- Position Y
   , bat_len = 80   -- Length
   , motion  = BStop -- Motion
+  , score   = 0
+  }
+
+initbat2State :: Bat
+initbat2State = BatStatus
+  { bat     = -80   -- Position Y
+  , bat_len = 80   -- Length
+  , motion  = BStop -- Motion
+  , score   = 0
   }
 
 -- | For Reading the function much easier 

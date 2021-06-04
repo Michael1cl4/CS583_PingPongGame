@@ -40,8 +40,8 @@ executable cs583-exe
   main-is: Main.hs
   other-modules:
       Paths_cs583
-	  Data
-	  HandleKey
+                  Data
+                  HandleKey
   hs-source-dirs:
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N

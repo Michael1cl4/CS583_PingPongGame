@@ -18,9 +18,9 @@ handleKeys :: Event -> PPG -> PPG
 handleKeys (EventKey (SpecialKey KeySpace) _ _ _) game = game { ballStat = initballState }
 
 -- For an KeyUp keypress, move up the bat2.
-handleKeys (EventKey (Char 'w') Down _ _) game = game {bat2state = 1}
+handleKeys (EventKey (Char 'w') Down _ _) game = game {bat2Stat = setBatMotion (bat2Stat game) BUp}
 -- For an KeyDown keypress, move down the bat2.
-handleKeys (EventKey (Char 's') Down _ _) game = game {bat2state = 2}
+handleKeys (EventKey (Char 's') Down _ _) game = game {bat2Stat = setBatMotion (bat2Stat game) BDown}
 -- For an KeyPageUp keypress, move up the bat1.
 handleKeys (EventKey (Char 'o') Down _ _) game = game {bat1Stat = setBatMotion (bat1Stat game) BUp}
 -- For an KeyPageDown keypress, move down the bat1.
@@ -32,16 +32,11 @@ handleKeys (EventKey (Char '1') Down _ _) game = case sceneState game of
                                                  _                    -> game
 -- For an “2” keypress, move down the bat1.
 handleKeys (EventKey (Char '2') Down _ _) game = case sceneState game of
-                                                 Instruction WithUser ->  case (bat2_height game) of
-                                                                          40 -> game {bat2_height = 60}
-                                                                          60 -> game {bat2_height = 80}
-                                                                          80 -> game {bat2_height = 100}
-                                                                          100 -> game {bat2_height = 120}
-                                                                          120 -> game {bat2_height = 40}
+                                                 Instruction WithUser -> game {bat2Stat = tuneBatLen (bat2Stat game)}
                                                  _                    -> game
 
-handleKeys (EventKey (Char 's') Up _ _) game = game {bat2state = 0}
-handleKeys (EventKey (Char 'w') Up _ _) game = game {bat2state = 0}
+handleKeys (EventKey (Char 's') Up _ _) game = game {bat2Stat = setBatMotion (bat2Stat game) BStop}
+handleKeys (EventKey (Char 'w') Up _ _) game = game {bat2Stat = setBatMotion (bat2Stat game) BStop}
 handleKeys (EventKey (Char 'o') Up _ _) game = game {bat1Stat = setBatMotion (bat1Stat game) BStop}
 handleKeys (EventKey (Char 'l') Up _ _) game = game {bat1Stat = setBatMotion (bat1Stat game) BStop}
 

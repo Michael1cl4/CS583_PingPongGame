@@ -38,9 +38,9 @@ main = play window background_Color 120 initialState render handleKeys update
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
 render game = case (sceneState game) of
-                Instruction WithAI -> pictures [ai , instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                Instruction WithUser -> pictures [instruction1, instruction1_diff, bat1_shape (bat_len (bat1Stat game)), instruction2, instruction2_diff, bat2_shape (bat2_height game), next, welcome, mod]
-                Play _ -> pictures [ball, walls, mkBat rose bat1x (bat (bat1Stat game)) (bat_len (bat1Stat game)), mkBat orange bat2x (bat2 game) (bat2_height game),player1_score, colon, player2_score]
+                Instruction WithAI -> pictures [ai , instruction2, instruction2_diff, bat_shape (bat_len (bat2Stat game)) (-window_height/4 + instruction_adjust), next, welcome, mod]
+                Instruction WithUser -> pictures [instruction1, instruction1_diff, bat_shape (bat_len (bat1Stat game)) 0, instruction2, instruction2_diff, bat_shape (bat_len (bat2Stat game)) (-window_height/4 + instruction_adjust), next, welcome, mod]
+                Play _ -> pictures [ball, walls, mkBat rose bat1x (bat (bat1Stat game)) (bat_len (bat1Stat game)), mkBat orange bat2x (bat (bat2Stat game)) (bat_len (bat2Stat game)), player1_score, colon, player2_score]
                 End -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
@@ -48,26 +48,25 @@ render game = case (sceneState game) of
     instruction1 = translate (-window_width/2 + instruction_adjust) (window_height/8) (scale small_font_size small_font_size (text "Player1 use O/L to control the right bat"))
     instruction1_diff = translate (-window_width/2 + instruction_adjust) (window_height/8 - instruction_adjust) (scale small_font_size small_font_size (text "Player1 use '1' to tune the bat length"))
     ai = translate (-window_width/4) (window_height/8) (scale small_font_size small_font_size (text "Player1 is controlled by AI"))
-    bat1_shape bat_len = translate (0) (0) (color bat_Color (rectangleSolid bat_len (10)))
+    bat_shape bat_len a = translate (0) (a) (color bat_Color (rectangleSolid bat_len (10)))
     instruction2 = translate (-window_width/2 + instruction_adjust) (-window_height/8 + instruction_adjust) (scale small_font_size small_font_size (text "Player2 use W/S to control the left bat"))
     instruction2_diff = translate (-window_width/2 + instruction_adjust) (-window_height/8) (scale small_font_size small_font_size (text "Player2 use '2' to tune the bat length"))
-    bat2_shape bat2_height = translate (0) (-window_height/4 + instruction_adjust) (color bat_Color (rectangleSolid bat2_height (10)))
     next  = translate (-window_width/4) (-window_height/2.5 + instruction_adjust) (scale mid_font_size mid_font_size (text "Press Q to play"))
     mod  = translate (-window_width/2 + instruction_adjust) (-window_height/2 + instruction_adjust) (scale mid_font_size mid_font_size (text "Press M to change mode"))
     -- End Scene
-    endTitle    = if (p1score game == win_score)
+    endTitle    = if (score (bat1Stat game) == win_score)
                   then translate (-window_width/2.5 + instruction_adjust) (window_height/4) (scale large_font_size large_font_size (text ("Player"++ show(1) ++" Win!!!")))
                   else translate (-window_width/2.5 + instruction_adjust) (window_height/4) (scale large_font_size large_font_size (text ("Player"++ show(2) ++" Win!!!")))
     endSubtitle = translate (-window_width/4 + instruction_adjust) (window_height/8)    (scale small_font_size small_font_size (text "[Game Developers]"))
-    endEdit1  = translate (-window_width/4 - instruction_adjust) (0 + instruction_adjust)    (scale small_font_size small_font_size (text "Yinchao Zhu zhuyin@oregonstate.edu"))
-    endEdit2  = translate (-window_width/4 - instruction_adjust) 0 (scale small_font_size small_font_size (text "Haoyuan Qiu iuha@oregonstate.edu"))
-    endEdit3  = translate (-window_width/4 - instruction_adjust) (0 - instruction_adjust) (scale small_font_size small_font_size (text "Shukan Nieh niehsh@oregonstat.edu"))
+    endEdit1  = translate (-window_width/4 - instruction_adjust * 2) 0 (scale small_font_size small_font_size (text "Yinchao Zhu zhuyin@oregonstate.edu"))
+    endEdit2  = translate (-window_width/4 - instruction_adjust * 2) (0 - instruction_adjust * 2) (scale small_font_size small_font_size (text "Haoyuan Qiu qiuha@oregonstate.edu"))
+    endEdit3  = translate (-window_width/4 - instruction_adjust * 2) (0 - instruction_adjust * 4) (scale small_font_size small_font_size (text "Shukan Nieh niehsh@oregonstate.edu"))
     -- the current score
-    player1_score = translate (window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show(p1score game))))
+    player1_score = translate (window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show (score (bat1Stat game)))))
     colon = translate 0 (window_height/2.5) (scale mid_font_size mid_font_size (text (":")))
-    player2_score = translate (-window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show(p2score game))))
+    player2_score = translate (-window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show (score (bat2Stat game)))))
     --  The pong ball.
-    ball = uncurry translate (posx (ballStat game), posy (ballStat game)) ( color ball_Color  (circleSolid ball_radius))
+    ball = uncurry translate (posx (ballStat game), posy (ballStat game)) (color ball_Color (circleSolid ball_radius))
 
     --  The bottom and top walls.
     wall :: Float -> Picture
@@ -78,7 +77,7 @@ render game = case (sceneState game) of
 
     --  Make a bat of a given border and vertical offset.
     mkBat :: Color -> Float -> Float -> Float -> Picture
-    mkBat col x y h = pictures [translate x y (color bat_Color (rectangleSolid bat_width h))]
+    mkBat col x y h = pictures [translate x y (color col (rectangleSolid bat_width h))]
 
 -- | Update the ball position using its current velocity.
 moveball :: BS -> Float -> BS
@@ -98,19 +97,14 @@ movement :: Float -> PPG -> PPG
 movement seconds game = case sceneState game of
                         Play WithUser -> game { ballStat = moveball (ballStat game) seconds
                                               , bat1Stat = movebat (bat1Stat game) (ballStat game) 5 WithUser
-                                              , bat2 = y'''}
+                                              , bat2Stat = movebat (bat2Stat game) (ballStat game) 5 WithUser}
                         Play WithAI   -> game { ballStat = moveball (ballStat game) seconds
                                               , bat1Stat = movebat (bat1Stat game) (ballStat game) x1 WithAI
-                                              , bat2 = y'''}
+                                              , bat2Stat = movebat (bat2Stat game) (ballStat game) 5 WithUser}
                         _             -> game
   where
     -- New Position of bat
     x1 = unsafePerformIO (getStdRandom (randomR (0.5, 1.5)))
-    y''' = case (bat2state game) of
-            0 -> (bat2 game)
-            1 -> (bat2 game) + 5
-            2 -> (bat2 game) - 5
-
 
 -- | Detect a collision with a bat. Upon collisions,
 -- change the velocity of the ball to bounce it off the bat.
@@ -127,7 +121,7 @@ batBounce game = case batCollision game of
 -- | Given position and radius of the ball, return whether a collision occurred.
 
 batCollision :: PPG -> Bool
-batCollision game = (leftXRange (posx (ballStat game)) (posy (ballStat game)) (bat2 game) (bat2_height game)
+batCollision game = (leftXRange (posx (ballStat game)) (posy (ballStat game)) (bat (bat2Stat game)) (bat_len (bat2Stat game))
                  || rightXRange (posx (ballStat game)) (posy (ballStat game)) (bat (bat1Stat game)) (bat_len (bat1Stat game)))
   where
     leftXRange x ball_y bat_y bat_h = ( floor(x - ball_radius) == floor(bat2x + bat_width / 2))
@@ -152,14 +146,7 @@ chgBatwall batStat = batStat { bat = if bat batStat >= (boundary_height - bat_le
 wallBounce :: PPG -> PPG
 wallBounce game = game { ballStat = chgBallVwall (ballStat game) (outDirChk (ballStat game))
                        , bat1Stat = chgBatwall (bat1Stat game)
-                       , bat2 = y''' }
-  where
-    p2y = bat2 game
-    y''' = if p2y >=  (boundary_height - (bat2_height game)) / 2
-           then (boundary_height - (bat2_height game)) / 2
-           else if p2y <=  -(boundary_height - (bat2_height game)) / 2
-           then -(boundary_height - (bat2_height game)) / 2
-           else p2y
+                       , bat2Stat = chgBatwall (bat2Stat game) }
 
 outDirChk :: BS -> Boundary
 outDirChk ballStat = if posx ballStat <= ball_radius - boundary_width /2       then LeftBound
@@ -168,15 +155,18 @@ outDirChk ballStat = if posx ballStat <= ball_radius - boundary_width /2       t
                      else if posy ballStat >= boundary_height /2 - ball_radius then BottomBound
                      else Center
 
+countscore :: Bat -> Bat
+countscore batStat = batStat { score = score batStat  + 1 }
+
 -- | Judge Win/Lose
 outofBound :: PPG -> PPG
 outofBound game = case outDirChk (ballStat game) of
-                    LeftBound  -> game {p1score = (p1score game) + 1, ballStat = initballState }
-                    RightBound -> game {p2score = (p2score game) + 1, ballStat = initballState}
+                    LeftBound  -> game {bat1Stat = countscore(bat1Stat game), ballStat = initballState }
+                    RightBound -> game {bat2Stat = countscore(bat2Stat game), ballStat = initballState}
                     _          -> game
 
 finishCheck :: PPG -> PPG
-finishCheck game = if  (p2score game) == win_score || (p1score game) == win_score
+finishCheck game = if  score (bat1Stat game) == win_score || score (bat2Stat game) == win_score
                    then game {sceneState = End}
                    else game
 
