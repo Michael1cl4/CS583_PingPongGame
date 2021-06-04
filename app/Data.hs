@@ -1,9 +1,24 @@
 module Data where
 -- | The size of our playground
 boundary_width, boundary_height, boundary_offset :: Float
-boundary_width = 300
+boundary_width  = 300
 boundary_height = 300
 boundary_offset = 100
+
+-- | size of our window
+window_width, window_height :: Float
+window_width  = 400
+window_height = 400
+
+-- | size of the font
+small_font_size, mid_font_size, large_font_size :: Float
+small_font_size = 0.12
+mid_font_size   = 0.2
+large_font_size = 0.4
+
+-- | a value that can slightly adjust the position of different instructions
+instruction_adjust :: Float
+instruction_adjust = 20
 
 -- | The size of the bat
 bat_width :: Float
@@ -20,7 +35,7 @@ wall_width = 270
 wall_height = 10
 
 win_score :: Int
-win_score = 5
+win_score = 1
 
 ball_radius :: Float
 ball_radius = 10

@@ -11,7 +11,7 @@ import HandleKey
 
 -- | Define the window size and name
 window :: Display
-window = InWindow "Ping Pong Game" (400, 400) (0, 0)
+window = InWindow "Ping Pong Game" (round(window_width), round(window_height)) (0, 0)
 
 -- | For the different Scene, the background color could be different
 background_Color, wall_Color, bat_Color, ball_Color  :: Color
@@ -35,7 +35,6 @@ Display	                        Display mode.
 main :: IO ()
 main = play window background_Color 120 initialState render handleKeys update
 
-
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
 render game = case (sceneState game) of
@@ -45,28 +44,28 @@ render game = case (sceneState game) of
                 End -> pictures [endTitle, endSubtitle, endEdit1, endEdit2, endEdit3]
   where
     -- Instruction Scene
-    welcome = translate (-185) 110 (scale 0.2 0.2 (text "Welcome to PingPong Game"))
-    instruction1 = translate (-180) (60) (scale 0.12 0.12 (text "Player1 use O/L to control the right bat"))
-    instruction1_diff = translate (-180) (30) (scale 0.12 0.12 (text "Player1 use '1' to tune the bat length"))
-    ai = translate (-100) (40) (scale 0.12 0.12 (text "Player1 is controlled by AI"))
+    welcome = translate (-window_width/2 + instruction_adjust) (window_height/4) (scale mid_font_size mid_font_size (text "Welcome to PingPong Game"))
+    instruction1 = translate (-window_width/2 + instruction_adjust) (window_height/8) (scale small_font_size small_font_size (text "Player1 use O/L to control the right bat"))
+    instruction1_diff = translate (-window_width/2 + instruction_adjust) (window_height/8 - instruction_adjust) (scale small_font_size small_font_size (text "Player1 use '1' to tune the bat length"))
+    ai = translate (-window_width/4) (window_height/8) (scale small_font_size small_font_size (text "Player1 is controlled by AI"))
     bat1_shape bat1_height = translate (0) (0) (color bat_Color (rectangleSolid bat1_height (10)))
-    instruction2 = translate (-180) (-30) (scale 0.12 0.12 (text "Player2 use W/S to control the left bat"))
-    instruction2_diff = translate (-180) (-60) (scale 0.12 0.12 (text "Player2 use '2' to tune the bat length"))
-    bat2_shape bat2_height = translate (0) (-90) (color bat_Color (rectangleSolid bat2_height (10)))
-    next  = translate (-110) (-150) (scale 0.2 0.2 (text "Press Q to play"))
-    mod  = translate (-170) (-190) (scale 0.2 0.2 (text "Press M to change mode"))
+    instruction2 = translate (-window_width/2 + instruction_adjust) (-window_height/8 + instruction_adjust) (scale small_font_size small_font_size (text "Player2 use W/S to control the left bat"))
+    instruction2_diff = translate (-window_width/2 + instruction_adjust) (-window_height/8) (scale small_font_size small_font_size (text "Player2 use '2' to tune the bat length"))
+    bat2_shape bat2_height = translate (0) (-window_height/4 + instruction_adjust) (color bat_Color (rectangleSolid bat2_height (10)))
+    next  = translate (-window_width/4) (-window_height/2.5 + instruction_adjust) (scale mid_font_size mid_font_size (text "Press Q to play"))
+    mod  = translate (-window_width/2 + instruction_adjust) (-window_height/2 + instruction_adjust) (scale mid_font_size mid_font_size (text "Press M to change mode"))
     -- End Scene
     endTitle    = if (p1score game == win_score)
-                  then translate (-150) 100   (scale 0.4 0.4 (text ("Player"++ show(1) ++" Win!!!")))
-                  else translate (-150) 100   (scale 0.4 0.4 (text ("Player"++ show(2) ++" Win!!!")))
-    endSubtitle = translate (-110) 50    (scale 0.2 0.2 (text "[Game Developers]"))
-    endEdit1  = translate (-110) 20    (scale 0.1 0.1 (text "Yinchao Zhu zhuyin@oregonstate.edu"))
-    endEdit2  = translate (-110) 0     (scale 0.1 0.1 (text "Haoyuan Qiu iuha@oregonstate.edu"))
-    endEdit3  = translate (-110) (-20) (scale 0.1 0.1 (text "Shukan Nieh niehsh@oregonstat.edu"))
+                  then translate (-window_width/2.5 + instruction_adjust) (window_height/4) (scale large_font_size large_font_size (text ("Player"++ show(1) ++" Win!!!")))
+                  else translate (-window_width/2.5 + instruction_adjust) (window_height/4) (scale large_font_size large_font_size (text ("Player"++ show(2) ++" Win!!!")))
+    endSubtitle = translate (-window_width/4 + instruction_adjust) (window_height/8)    (scale small_font_size small_font_size (text "[Game Developers]"))
+    endEdit1  = translate (-window_width/4 - instruction_adjust) (0 + instruction_adjust)    (scale small_font_size small_font_size (text "Yinchao Zhu zhuyin@oregonstate.edu"))
+    endEdit2  = translate (-window_width/4 - instruction_adjust) 0 (scale small_font_size small_font_size (text "Haoyuan Qiu iuha@oregonstate.edu"))
+    endEdit3  = translate (-window_width/4 - instruction_adjust) (0 - instruction_adjust) (scale small_font_size small_font_size (text "Shukan Nieh niehsh@oregonstat.edu"))
     -- the current score
-    player1_score = translate 60 165 (scale 0.2 0.2 (text (show(p1score game))))
-    colon = translate 0 165 (scale 0.2 0.2 (text (":")))
-    player2_score = translate (-60) 165 (scale 0.2 0.2 (text (show(p2score game))))
+    player1_score = translate (window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show(p1score game))))
+    colon = translate 0 (window_height/2.5) (scale mid_font_size mid_font_size (text (":")))
+    player2_score = translate (-window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show(p2score game))))
     --  The pong ball.
     ball = uncurry translate (posx (ballStat game), posy (ballStat game)) ( color ball_Color  (circleSolid ball_radius))
 
