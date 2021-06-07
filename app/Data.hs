@@ -20,6 +20,10 @@ large_font_size = 0.4
 instruction_adjust :: Float
 instruction_adjust = 20
 
+-- | the fps of the game
+fps :: Int
+fps = 120
+
 -- | The width of the bat
 bat_width :: Float
 bat_width  = 20

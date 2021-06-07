@@ -7,8 +7,8 @@
 - [A brief description](#a-brief-description)
 - [Instructions for running](#instructions-for-running)
 - [Notes](#notes)
-- [Milestone #1](#milestone--1)
-- [Milestone #2](#milestone--2)
+- [Milestone 1](#milestone-1)
+- [Milestone 2](#milestone-2)
 - [Final](#final)
 
 ## A brief description
@@ -39,14 +39,14 @@ Copy the glut32.dll we provided in the root directory to /root/.stack-work/insta
 This makes sense when we test :)
 
 
-## Milestone #1
+## Milestone 1
 1. When we were trying to implement the difficulty into our program, we met a problem that the speed change may cause the function of bat collision to fail. 
    We found the reason is that the position of the ball may not equal to the bat position. Therefore, our collision function won't consider the ball touching the bat.
 2. Because it’s the first version of the program, we are trying to make sure the scheme of the game is workable. For example, defining the game state, changing the scene of the game, creating the counting board, controlling bats’ position, and moving the ball. However, many logical functions have similar types, such as the judgement of the bat collision, the judgement of the wall collision, and the judgement of the winner. It’s better to define an extendible class to make the whole program look more structural.
 3. Using artificial intelligence to control one of the bats would be a challenge for us because there are still some mechanisms and modifications of the recent functions that need to be done.
 
 
-## Milestone #2
+## Milestone 2
 1. We implemented the Gloss module to draw the graph and handle the key reaction. After researching some information, Gloss is the best choice because it is based on OpenGL but it is easy to use and can generate cool graphics in a short time.
 2. When we update the game state for each scene, we use the function composition idea to combine the different functions for calculating the position, velocity and win/lose.
 3. We are still under construction to build a self-designed game state monad which applies to some functions like movement, collision, and out-of-bound. We would appreciate it if anyone can give us more suggestions.

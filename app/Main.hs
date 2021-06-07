@@ -33,7 +33,7 @@ Display	                        Display mode.
 -}
 
 main :: IO ()
-main = play window background_Color 120 initialState render handleKeys update
+main = play window background_Color fps initialState render handleKeys update
 
 -- | Convert a game state into a picture.
 render :: PPG  -> Picture
