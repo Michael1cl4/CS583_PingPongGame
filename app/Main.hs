@@ -62,7 +62,7 @@ render game = case (sceneState game) of
     endEdit2  = translate (-window_width/4 - instruction_adjust * 2) (0 - instruction_adjust * 2) (scale small_font_size small_font_size (text "Haoyuan Qiu qiuha@oregonstate.edu"))
     endEdit3  = translate (-window_width/4 - instruction_adjust * 2) (0 - instruction_adjust * 4) (scale small_font_size small_font_size (text "Shukan Nieh niehsh@oregonstate.edu"))
     -- Play Scene
-	-- the current score
+    -- the current score
     player1_score = translate (window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show (score (bat1Stat game)))))
     colon = translate 0 (window_height/2.5) (scale mid_font_size mid_font_size (text (":")))
     player2_score = translate (-window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show (score (bat2Stat game)))))
