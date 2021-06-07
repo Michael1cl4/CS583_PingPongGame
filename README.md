@@ -3,6 +3,14 @@
 - Haoyuan Qiu, qiuha@oregonstate.edu
 - Shukan Nieh, niehsh@oregonstate.edu
 
+## Index
+- [A brief description](#a-brief-description)
+- [Instructions for running](#instructions-for-running)
+- [Notes](#notes)
+- [Milestone #1](#milestone--1)
+- [Milestone #2](#milestone--2)
+- [Final](#final)
+
 ## A brief description
 Our project goal is to develop a ping-pong game using Haskell. At this point, the functionalities of the game can run correctly, including:
 1. Movement of the bat, the ball, and the ball's rebound.
@@ -42,3 +50,34 @@ This makes sense when we test :)
 1. We implemented the Gloss module to draw the graph and handle the key reaction. After researching some information, Gloss is the best choice because it is based on OpenGL but it is easy to use and can generate cool graphics in a short time.
 2. When we update the game state for each scene, we use the function composition idea to combine the different functions for calculating the position, velocity and win/lose.
 3. We are still under construction to build a self-designed game state monad which applies to some functions like movement, collision, and out-of-bound. We would appreciate it if anyone can give us more suggestions.
+
+## Final
+1. What external libraries (if any) does your project depend on?
+    - Our project is based on the Gloss library and refer to the tutorial website: https://andrew.gibiansky.com/blog/haskell/haskell-gloss/.
+    - However, this project still contains many self designed parts, such as "changing scene", "AI control bat", "changing difficulty", "handle key", and so on.
+2. What module should be loaded into GHCi? (Or, what command to run to compile and execute your project.)
+    - Please refer to the section of "Instructions for running" for details, all commands are about the "stack" command in haskell.
+    - Make sure the stack is installed
+    - Move to the directory of the "CS583_FinalProject"
+    - Run command "stack build"
+    - Run command "stack run"
+3. (Important!) What are some example expressions to evaluate in GHCi, or some example input sequences, that show off the important aspects of your project?
+    - Because this project is to develop a game, the evaluation method is to play this game. The following is the user manual for this game, and there are three different scenes in this game.
+    - In the instruction scene  
+      - You can use 'M' to switch game modes between player-to-player and player-to-AI. It means that player1 could be controlled by either player or AI.
+      - Players can change the difficulty by tuning the length of the bat within 5 different lengths. 
+      - For example, Player 1(the right bat) can adjust their bet length with '1', and Player 2(the left bat) can adjust with '2'. 
+      - In addition, if you want to tune the AI bat's length, please tune player1 bat's length first. Then, switch the game mode to the AI mode.
+      - 'Q' can be used to enter the game.
+    - In the game scene,
+      - Player 1(the right bat) can control the bat by 'O' and 'L' in a player-to-player game.
+      - Player 2(the left bat) can control the bat by 'W' and 'S'.
+      - 'Space'can be used to reset the ball.
+      - 'Q' can be used to return back to the instruction scene.
+      - When either one of the players wins a single matchup, the scoreboard will give you one point.
+      - When either one of the players becomes the first one to score 11 points, the game will move to the end scene.
+    -In the end scene,
+      - The screen will show which player wins the game.
+      - 'Q' can be used to switch to the instruction scene.
+
+

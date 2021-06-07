@@ -5,12 +5,12 @@ boundary_width  = 300
 boundary_height = 300
 boundary_offset = 100
 
--- | size of our window
+-- | The size of our window
 window_width, window_height :: Float
 window_width  = 400
 window_height = 400
 
--- | size of the font
+-- | The size of the font
 small_font_size, mid_font_size, large_font_size :: Float
 small_font_size = 0.12
 mid_font_size   = 0.2
@@ -20,11 +20,11 @@ large_font_size = 0.4
 instruction_adjust :: Float
 instruction_adjust = 20
 
--- | The size of the bat
+-- | The width of the bat
 bat_width :: Float
 bat_width  = 20
 
--- | The bat position on X-axis
+-- | The bat position on X-axis, because the bat's x is fixed
 bat1x, bat2x :: Float
 bat1x = 120
 bat2x = -120
@@ -34,9 +34,11 @@ wall_width, wall_height  :: Float
 wall_width = 270
 wall_height = 10
 
+-- | The score to check who win
 win_score :: Int
 win_score = 11
 
+-- | The ball radius is fixed
 ball_radius :: Float
 ball_radius = 10
 
@@ -74,7 +76,7 @@ data BS = BallStatue
   , ballspeed :: Float
   }deriving Show
 
--- | Left player Bat Status
+-- | Player Bat Status
 data Bat = BatStatus
   { bat     :: Float  -- Position Y
   , bat_len :: Float  -- Length
@@ -118,6 +120,7 @@ initbat1State = BatStatus
   , score   = 0
   }
 
+-- | The Initial State of the Bat2
 initbat2State :: Bat
 initbat2State = BatStatus
   { bat     = -80   -- Position Y

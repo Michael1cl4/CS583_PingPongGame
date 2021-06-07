@@ -61,7 +61,8 @@ render game = case (sceneState game) of
     endEdit1  = translate (-window_width/4 - instruction_adjust * 2) 0 (scale small_font_size small_font_size (text "Yinchao Zhu zhuyin@oregonstate.edu"))
     endEdit2  = translate (-window_width/4 - instruction_adjust * 2) (0 - instruction_adjust * 2) (scale small_font_size small_font_size (text "Haoyuan Qiu qiuha@oregonstate.edu"))
     endEdit3  = translate (-window_width/4 - instruction_adjust * 2) (0 - instruction_adjust * 4) (scale small_font_size small_font_size (text "Shukan Nieh niehsh@oregonstate.edu"))
-    -- the current score
+    -- Play Scene
+	-- the current score
     player1_score = translate (window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show (score (bat1Stat game)))))
     colon = translate 0 (window_height/2.5) (scale mid_font_size mid_font_size (text (":")))
     player2_score = translate (-window_width/8) (window_height/2.5) (scale mid_font_size mid_font_size (text (show (score (bat2Stat game)))))
@@ -84,6 +85,7 @@ moveball :: BS -> Float -> BS
 moveball ballStat seconds = ballStat { posx = posx ballStat + velx ballStat * seconds
                                      , posy = posy ballStat + vely ballStat * seconds}
 
+-- | Update the bat position using its motion and the play mode.
 movebat :: Bat -> BS -> Float -> PlayMod -> Bat
 movebat batStat ballStat a WithUser = batStat { bat = case motion batStat of
                                                           BStop -> bat batStat
@@ -93,6 +95,7 @@ movebat batStat ballStat a WithAI   = batStat { bat = if posy ballStat > bat bat
                                                           then bat batStat + a
                                                           else bat batStat - a}
 
+-- | Update the bat position by the play mode.
 movement :: Float -> PPG -> PPG
 movement seconds game = case sceneState game of
                         Play WithUser -> game { ballStat = moveball (ballStat game) seconds
@@ -106,8 +109,8 @@ movement seconds game = case sceneState game of
     -- New Position of bat
     x1 = unsafePerformIO (getStdRandom (randomR (0.5, 1.5)))
 
--- | Detect a collision with a bat. Upon collisions,
--- change the velocity of the ball to bounce it off the bat.
+-- | Detect a collision with a bat. Upon batCollision,
+--   change the velocity of the ball to bounce it off the bat.
 chgBallVbat :: BS -> Bool -> BS
 chgBallVbat ballStat True  = ballStat { velx = -velx ballStat * ballspeed ballStat
                                       , vely = vely ballStat  * ballspeed ballStat}
@@ -118,7 +121,6 @@ batBounce game = case batCollision game of
                  True  -> game{ballStat = chgBallVbat (ballStat game) (abs(velx (ballStat game)) * ballspeed (ballStat game) < 150 && abs(vely (ballStat game)) * ballspeed (ballStat game) < 200)
                               }
                  False -> game
--- | Given position and radius of the ball, return whether a collision occurred.
 
 batCollision :: PPG -> Bool
 batCollision game = (leftXRange (posx (ballStat game)) (posy (ballStat game)) (bat (bat2Stat game)) (bat_len (bat2Stat game))
@@ -129,8 +131,8 @@ batCollision game = (leftXRange (posx (ballStat game)) (posy (ballStat game)) (b
     rightXRange x ball_y bat_y bat_h = (floor(x + ball_radius) ==  floor(bat1x - bat_width / 2))
                                && ((ball_y <= bat_h / 2 + bat_y) && (ball_y >= -bat_h / 2 + bat_y))
 
--- | Detect a collision with one of the side walls. Upon collisions,
--- update the velocity of the ball to bounce it off the wall.
+-- | Detect a collision with one of the side walls. Upon outDirChk's boundary result,
+--   update the velocity of the ball to bounce it off the wall.
 chgBallVwall :: BS -> Boundary -> BS
 chgBallVwall ballStat TopBound    = ballStat {vely = -vely ballStat}
 chgBallVwall ballStat BottomBound = ballStat {vely = -vely ballStat}
@@ -155,21 +157,23 @@ outDirChk ballStat = if posx ballStat <= ball_radius - boundary_width /2       t
                      else if posy ballStat >= boundary_height /2 - ball_radius then BottomBound
                      else Center
 
+-- | Judge Win/Lose for each matchup
+--   Detect a collision with one of the side walls. Upon outDirChk's boundary result,
 countscore :: Bat -> Bat
 countscore batStat = batStat { score = score batStat  + 1 }
 
--- | Judge Win/Lose
 outofBound :: PPG -> PPG
 outofBound game = case outDirChk (ballStat game) of
                     LeftBound  -> game {bat1Stat = countscore(bat1Stat game), ballStat = initballState }
                     RightBound -> game {bat2Stat = countscore(bat2Stat game), ballStat = initballState}
                     _          -> game
 
+-- | Used to check who win the whole game by win_score
 finishCheck :: PPG -> PPG
 finishCheck game = if  score (bat1Stat game) == win_score || score (bat2Stat game) == win_score
                    then game {sceneState = End}
                    else game
 
--- | Update the game by moving the ball and bouncing off walls.
+-- | Update the game by applying the rule, and update the status of both ball and bats.
 update :: Float -> PPG -> PPG
 update seconds = finishCheck . outofBound . batBounce . wallBounce . movement seconds
