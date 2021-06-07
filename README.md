@@ -10,7 +10,7 @@
 - [Milestone 1](#milestone-1)
 - [Milestone 2](#milestone-2)
 - [Final](#final)
-- [Project Report](#https://github.com/Michael1cl4/CS583_PingPongGame/blob/main/CS583-Project_Report.pdf)
+- [Project Report](https://github.com/Michael1cl4/CS583_PingPongGame/blob/main/CS583-Project_Report.pdf)
 
 ## A brief description
 Our project goal is to develop a ping-pong game using Haskell. At this point, the functionalities of the game can run correctly, including:
