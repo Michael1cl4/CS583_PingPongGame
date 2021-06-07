@@ -76,7 +76,7 @@ This makes sense when we test :)
       - 'Q' can be used to return back to the instruction scene.
       - When either one of the players wins a single matchup, the scoreboard will give you one point.
       - When either one of the players becomes the first one to score 11 points, the game will move to the end scene.
-    -In the end scene,
+    - In the end scene,
       - The screen will show which player wins the game.
       - 'Q' can be used to switch to the instruction scene.
 
